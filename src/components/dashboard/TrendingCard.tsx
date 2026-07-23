@@ -1,11 +1,13 @@
+import { memo } from 'react'
 import type { SearchRepoResult } from '../../api/rest'
 import LanguageDot from '../shared/LanguageDot'
 import { OcticonStar } from '../icons/Octicons'
 
-export default function TrendingCard({ repo, onOpen }: { repo: SearchRepoResult; onOpen: () => void }) {
+function TrendingCard({ repo, onOpen }: { repo: SearchRepoResult; onOpen: () => void }) {
   return (
-    <div
-      className="border border-border-default rounded-md bg-canvas-subtle hover:border-accent-fg transition-colors cursor-pointer p-4 flex flex-col gap-2"
+    <button
+      type="button"
+      className="w-full text-left border border-border-default rounded-md bg-canvas-subtle hover:border-accent-fg transition-colors cursor-pointer p-4 flex flex-col gap-2"
       onClick={onOpen}
     >
       <span className="font-mono text-sm font-medium truncate block">
@@ -21,6 +23,8 @@ export default function TrendingCard({ repo, onOpen }: { repo: SearchRepoResult;
         </span>
         <span className="text-xs text-fg-muted">Updated {new Date(repo.updated_at).toLocaleDateString()}</span>
       </div>
-    </div>
+    </button>
   )
 }
+
+export default memo(TrendingCard)

@@ -1,3 +1,4 @@
+import { memo } from 'react'
 import type { Repo, StarList } from '../../types/github'
 import type { DeploymentRecord, ReviewStage } from '../../types/gsmState'
 import { REVIEW_TAG_LISTS } from '../../config/reviewTags'
@@ -17,7 +18,7 @@ const STAGE_COLORS = {
 const EMPTY_REVIEW_TAGS: Record<string, ReviewStage> = {}
 const EMPTY_DEPLOYMENTS: Record<string, DeploymentRecord> = {}
 
-export default function RepoCard({
+function RepoCard({
   repo,
   lists,
   reviewTags = EMPTY_REVIEW_TAGS,
@@ -39,8 +40,9 @@ export default function RepoCard({
   const stageLabel = stage ? REVIEW_TAG_LISTS.find((d) => d.key === stage)?.shortLabel : null
 
   return (
-    <div
-      className={`border border-border-default rounded-md bg-canvas-subtle hover:border-accent-fg transition-colors cursor-pointer ${
+    <button
+      type="button"
+      className={`w-full text-left border border-border-default rounded-md bg-canvas-subtle hover:border-accent-fg transition-colors cursor-pointer ${
         view === 'grid' ? 'p-4 flex flex-col gap-2' : 'p-3 flex items-center gap-4'
       }`}
       onClick={onOpen}
@@ -87,6 +89,8 @@ export default function RepoCard({
           ))}
         </div>
       )}
-    </div>
+    </button>
   )
 }
+
+export default memo(RepoCard)

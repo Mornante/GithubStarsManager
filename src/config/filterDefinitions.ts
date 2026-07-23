@@ -1,4 +1,4 @@
-import type { FilterDefinition, FilterOption, FilterPredicateCtx, SortOption } from '../types/filters'
+import type { FilterDefinition, FilterOption, FilterPredicateCtx, FilterValue, SortOption } from '../types/filters'
 import type { Repo } from '../types/github'
 import SearchFilterControl from '../components/repos/filters/SearchFilterControl'
 import MultiSelectFilterControl from '../components/repos/filters/MultiSelectFilterControl'
@@ -22,6 +22,22 @@ function uniqueOptionsFrom(values: Iterable<string>): FilterOption[] {
     .sort((a, b) => b.count! - a.count!)
 }
 
+// FILTER_DEFINITIONS is a heterogeneous array — each entry's `V` (string,
+// string[], string | null, ...) differs, so the array itself can only be
+// typed as `FilterDefinition[]` (V = FilterValue). Building each entry through
+// this generic wrapper means every field inside a single definition — its
+// control, predicate, serializer — is still checked against that
+// definition's own concrete V, so a typo passing the wrong shape is caught
+// at the definition site. The array-level erasure becomes one controlled
+// cast here instead of being repeated inside every predicate/serializer.
+function defineFilter<V extends FilterValue>(def: FilterDefinition<V>): FilterDefinition {
+  // V appears in contravariant (function-parameter) position across these
+  // fields, so TS won't allow a direct cast between instantiations — this is
+  // the one unavoidable erasure boundary, going through `unknown` as TS's own
+  // error message for the direct cast recommends.
+  return def as unknown as FilterDefinition
+}
+
 const YES_NO_OPTIONS: FilterOption[] = [
   { value: 'yes', label: 'Yes' },
   { value: 'no', label: 'No' },
@@ -34,11 +50,11 @@ function yesNoFilter(
   label: string,
   matches: (repo: Repo, ctx: FilterPredicateCtx) => boolean,
 ): FilterDefinition {
-  return {
+  return defineFilter<string | null>({
     key,
     label,
     kind: 'select',
-    control: SelectFilterControl as FilterDefinition['control'],
+    control: SelectFilterControl,
     defaultValue: null,
     getOptions: () => YES_NO_OPTIONS,
     predicate: (repo, value, ctx) => {
@@ -50,114 +66,104 @@ function yesNoFilter(
     deserialize: (raw) => raw,
     toPillLabels: (value) => (value ? [value === 'yes' ? 'Yes' : 'No'] : []),
     isActive: (value) => Boolean(value),
-  }
+  })
 }
 
 export const FILTER_DEFINITIONS: FilterDefinition[] = [
-  {
+  defineFilter<string>({
     key: 'q',
     label: 'Search',
     kind: 'search',
-    control: SearchFilterControl as FilterDefinition['control'],
+    control: SearchFilterControl,
     defaultValue: '',
-    predicate: (repo, value) =>
-      !value || repo.name.toLowerCase().includes(String(value).toLowerCase()),
-    serialize: (value) => (value ? String(value) : null),
+    predicate: (repo, value) => !value || repo.name.toLowerCase().includes(value.toLowerCase()),
+    serialize: (value) => (value ? value : null),
     deserialize: (raw) => raw ?? '',
     toPillLabels: (value) => (value ? [`"${value}"`] : []),
     isActive: (value) => Boolean(value),
-  },
-  {
+  }),
+  defineFilter<string[]>({
     key: 'language',
     label: 'Language',
     kind: 'multiselect',
-    control: MultiSelectFilterControl as FilterDefinition['control'],
+    control: MultiSelectFilterControl,
     defaultValue: [],
-    getOptions: (repos) => uniqueOptionsFrom(repos.map((r) => r.primaryLanguage?.name).filter(Boolean) as string[]),
-    predicate: (repo, value) => {
-      const langs = value as string[]
-      return langs.length === 0 || (repo.primaryLanguage !== null && langs.includes(repo.primaryLanguage.name))
-    },
-    serialize: (value) => csvSerialize(value as string[]),
+    getOptions: (repos) =>
+      uniqueOptionsFrom(repos.map((r) => r.primaryLanguage?.name).filter((name): name is string => Boolean(name))),
+    predicate: (repo, value) =>
+      value.length === 0 || (repo.primaryLanguage !== null && value.includes(repo.primaryLanguage.name)),
+    serialize: (value) => csvSerialize(value),
     deserialize: (raw) => csvDeserialize(raw),
-    toPillLabels: (value) => value as string[],
-    isActive: (value) => (value as string[]).length > 0,
-  },
-  {
+    toPillLabels: (value) => value,
+    isActive: (value) => value.length > 0,
+  }),
+  defineFilter<string[]>({
     key: 'topic',
     label: 'Topic',
     kind: 'multiselect',
-    control: MultiSelectFilterControl as FilterDefinition['control'],
+    control: MultiSelectFilterControl,
     defaultValue: [],
     getOptions: (repos) => uniqueOptionsFrom(repos.flatMap((r) => r.topics)),
-    predicate: (repo, value) => {
-      const topics = value as string[]
-      return topics.length === 0 || topics.some((t) => repo.topics.includes(t))
-    },
-    serialize: (value) => csvSerialize(value as string[]),
+    predicate: (repo, value) => value.length === 0 || value.some((t) => repo.topics.includes(t)),
+    serialize: (value) => csvSerialize(value),
     deserialize: (raw) => csvDeserialize(raw),
-    toPillLabels: (value) => value as string[],
-    isActive: (value) => (value as string[]).length > 0,
-  },
-  {
+    toPillLabels: (value) => value,
+    isActive: (value) => value.length > 0,
+  }),
+  defineFilter<string[]>({
     key: 'license',
     label: 'License',
     kind: 'multiselect',
-    control: MultiSelectFilterControl as FilterDefinition['control'],
+    control: MultiSelectFilterControl,
     defaultValue: [],
     getOptions: (repos) =>
-      uniqueOptionsFrom(repos.map((r) => r.licenseInfo?.spdxId ?? r.licenseInfo?.name).filter(Boolean) as string[]),
+      uniqueOptionsFrom(
+        repos.map((r) => r.licenseInfo?.spdxId ?? r.licenseInfo?.name).filter((name): name is string => Boolean(name)),
+      ),
     predicate: (repo, value) => {
-      const licenses = value as string[]
-      if (licenses.length === 0) return true
+      if (value.length === 0) return true
       const key = repo.licenseInfo?.spdxId ?? repo.licenseInfo?.name
-      return key !== undefined && licenses.includes(key)
+      return key !== undefined && value.includes(key)
     },
-    serialize: (value) => csvSerialize(value as string[]),
+    serialize: (value) => csvSerialize(value),
     deserialize: (raw) => csvDeserialize(raw),
-    toPillLabels: (value) => value as string[],
-    isActive: (value) => (value as string[]).length > 0,
-  },
-  {
+    toPillLabels: (value) => value,
+    isActive: (value) => value.length > 0,
+  }),
+  defineFilter<string | null>({
     key: 'list',
     label: 'Star list',
     kind: 'select',
-    control: SelectFilterControl as FilterDefinition['control'],
+    control: SelectFilterControl,
     defaultValue: null,
     getOptions: (_repos, lists) => lists.map((l) => ({ value: l.id, label: l.name, count: l.repoIds.length })),
-    predicate: (repo, value) => {
-      if (!value) return true
-      return repo.listIds.includes(value as string)
-    },
-    serialize: (value) => (value ? String(value) : null),
+    predicate: (repo, value) => !value || repo.listIds.includes(value),
+    serialize: (value) => (value ? value : null),
     deserialize: (raw) => raw,
     toPillLabels: (value, options) => {
       if (!value) return []
       const opt = options?.find((o) => o.value === value)
-      return opt ? [opt.label] : [String(value)]
+      return opt ? [opt.label] : [value]
     },
     isActive: (value) => Boolean(value),
-  },
-  {
+  }),
+  defineFilter<string | null>({
     key: 'reviewStage',
     label: 'Review status',
     kind: 'select',
-    control: SelectFilterControl as FilterDefinition['control'],
+    control: SelectFilterControl,
     defaultValue: null,
     getOptions: () => REVIEW_TAG_LISTS.map((def) => ({ value: def.key, label: def.shortLabel })),
-    predicate: (repo, value, ctx) => {
-      if (!value) return true
-      return ctx.reviewTags[repo.id] === value
-    },
-    serialize: (value) => (value ? String(value) : null),
+    predicate: (repo, value, ctx) => !value || ctx.reviewTags[repo.id] === value,
+    serialize: (value) => (value ? value : null),
     deserialize: (raw) => raw,
     toPillLabels: (value, options) => {
       if (!value) return []
       const opt = options?.find((o) => o.value === value)
-      return opt ? [opt.label] : [String(value)]
+      return opt ? [opt.label] : [value]
     },
     isActive: (value) => Boolean(value),
-  },
+  }),
   yesNoFilter('unsorted', 'Unsorted', (repo) => repo.listIds.length === 0),
   yesNoFilter('untagged', 'Not tagged', (repo, ctx) => !ctx.reviewTags[repo.id]),
   yesNoFilter('uncategorized', 'Tagged, not categorized', (repo, ctx) => {

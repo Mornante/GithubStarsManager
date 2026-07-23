@@ -1,5 +1,6 @@
-import { useEffect, useState } from 'react'
+import { useAsync } from '../../hooks/useAsync'
 import MarkdownContent from '../shared/MarkdownContent'
+import Loader from '../shared/Loader'
 
 export default function ReadmePreview({
   token,
@@ -12,22 +13,10 @@ export default function ReadmePreview({
   fetcher: (token: string) => Promise<string | null>
   emptyMessage?: string
 }) {
-  const [content, setContent] = useState<string | null | undefined>(undefined)
+  const { data: content, loading } = useAsync(() => fetcher(token), [token, fetchKey])
 
-  useEffect(() => {
-    setContent(undefined)
-    let cancelled = false
-    fetcher(token).then((readme) => {
-      if (!cancelled) setContent(readme)
-    })
-    return () => {
-      cancelled = true
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [token, fetchKey])
-
-  if (content === undefined) {
-    return <p className="text-sm text-fg-muted">Loading README…</p>
+  if (loading) {
+    return <Loader label="Loading README…" />
   }
 
   if (content === null) {

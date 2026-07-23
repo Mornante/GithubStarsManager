@@ -8,6 +8,7 @@ const SCOPES = [
   { name: 'user', reason: 'Manage star lists — tagging and categorizing repos.' },
   { name: 'public_repo', reason: 'Read and star public repos.' },
   { name: 'read:org', reason: 'Browse and follow public organizations.' },
+  { name: 'gist', reason: 'Create and update the private GSM:STATE gist that stores your tags, deployments, and notes.' },
 ]
 
 export default function LoginPage() {

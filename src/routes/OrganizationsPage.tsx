@@ -5,6 +5,7 @@ import { useStarredRepos } from '../hooks/useStarredRepos'
 import { useInfiniteScrollSentinel } from '../hooks/useInfiniteScrollSentinel'
 import OrgCard from '../components/orgs/OrgCard'
 import OrgDetailModal from '../components/orgs/OrgDetailModal'
+import Loader from '../components/shared/Loader'
 import { OcticonSearch } from '../components/icons/Octicons'
 
 export default function OrganizationsPage() {
@@ -39,6 +40,10 @@ export default function OrganizationsPage() {
   // toggles inside the modal stay in sync without needing to close and reopen it.
   const selectedOrg =
     results.find((o) => o.id === selectedOrgId) ?? followedOrgs.find((o) => o.id === selectedOrgId) ?? null
+
+  // Followed orgs already have their own section above — don't show them again here.
+  const followedIds = useMemo(() => new Set(followedOrgs.map((o) => o.id)), [followedOrgs])
+  const visibleResults = useMemo(() => results.filter((o) => !followedIds.has(o.id)), [results, followedIds])
 
   return (
     <div className="space-y-8">
@@ -80,13 +85,16 @@ export default function OrganizationsPage() {
         )}
 
         {status === 'error' && <p className="text-sm text-danger-fg">{error}</p>}
-        {status === 'loading' && <p className="text-sm text-fg-muted">Loading…</p>}
+        {status === 'loading' && <Loader label="Loading…" />}
         {status !== 'loading' && results.length === 0 && (
           <p className="text-sm text-fg-muted">No organizations found for that search.</p>
         )}
+        {status !== 'loading' && results.length > 0 && visibleResults.length === 0 && (
+          <p className="text-sm text-fg-muted">Every match is already in your Following list above.</p>
+        )}
 
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
-          {results.map((org) => (
+          {visibleResults.map((org) => (
             <OrgCard key={org.id} org={org} onOpen={() => setSelectedOrgId(org.id)} />
           ))}
         </div>
@@ -94,13 +102,13 @@ export default function OrganizationsPage() {
         {results.length > 0 && (
           <div ref={sentinelRef} className="py-4 text-center text-sm">
             {status === 'loadingMore' ? (
-              <span className="text-fg-muted">Loading more…</span>
+              <Loader label="Loading more…" size="sm" />
             ) : hasMore ? (
               <button type="button" onClick={loadMore} className="text-fg-muted hover:text-fg-default underline">
                 Load more
               </button>
             ) : (
-              <span className="text-fg-muted">Showing all {results.length}</span>
+              <span className="text-fg-muted">Showing all {visibleResults.length}</span>
             )}
           </div>
         )}

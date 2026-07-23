@@ -2,6 +2,7 @@ import { useAuthStore } from '../../store/authStore'
 import { useStarsStore } from '../../store/starsStore'
 import { legacySystemListIds } from '../../selectors/reviewTagSelectors'
 import type { Repo, StarList } from '../../types/github'
+import Modal from '../shared/Modal'
 
 export default function CategoryListModal({
   repo,
@@ -26,45 +27,43 @@ export default function CategoryListModal({
   }
 
   return (
-    <div
-      className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm"
-      onClick={onClose}
+    <Modal
+      onClose={onClose}
+      labelledBy="category-list-modal-title"
+      className="w-full max-w-md rounded-md border border-border-default bg-canvas p-6"
     >
-      <div
-        className="w-full max-w-md rounded-md border border-border-default bg-canvas p-6"
-        onClick={(e) => e.stopPropagation()}
-      >
-        <div className="flex items-center justify-between mb-4">
-          <h3 className="text-base font-semibold">Add to category</h3>
-          <button
-            type="button"
-            onClick={onClose}
-            aria-label="Close"
-            className="text-fg-muted hover:text-fg-default text-xl leading-none px-1"
-          >
-            ×
-          </button>
-        </div>
-
-        {categoryLists.length === 0 ? (
-          <p className="text-sm text-fg-muted">You don't have any non-tag star lists yet.</p>
-        ) : (
-          <div className="space-y-1 max-h-72 overflow-y-auto">
-            {categoryLists.map((list) => {
-              const isMember = repo.listIds.includes(list.id)
-              return (
-                <label
-                  key={list.id}
-                  className="flex items-center gap-2 px-2 py-1.5 text-sm rounded hover:bg-canvas-subtle cursor-pointer"
-                >
-                  <input type="checkbox" checked={isMember} onChange={() => toggle(list.id, isMember)} />
-                  <span className="truncate">{list.name}</span>
-                </label>
-              )
-            })}
-          </div>
-        )}
+      <div className="flex items-center justify-between mb-4">
+        <h3 id="category-list-modal-title" className="text-base font-semibold">
+          Add to category
+        </h3>
+        <button
+          type="button"
+          onClick={onClose}
+          aria-label="Close"
+          className="text-fg-muted hover:text-fg-default text-xl leading-none px-1"
+        >
+          ×
+        </button>
       </div>
-    </div>
+
+      {categoryLists.length === 0 ? (
+        <p className="text-sm text-fg-muted">You don't have any non-tag star lists yet.</p>
+      ) : (
+        <div className="space-y-1 max-h-72 overflow-y-auto">
+          {categoryLists.map((list) => {
+            const isMember = repo.listIds.includes(list.id)
+            return (
+              <label
+                key={list.id}
+                className="flex items-center gap-2 px-2 py-1.5 text-sm rounded hover:bg-canvas-subtle cursor-pointer"
+              >
+                <input type="checkbox" checked={isMember} onChange={() => toggle(list.id, isMember)} />
+                <span className="truncate">{list.name}</span>
+              </label>
+            )
+          })}
+        </div>
+      )}
+    </Modal>
   )
 }

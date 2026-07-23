@@ -27,6 +27,7 @@ export default function FilterCards({
             key={card.key}
             type="button"
             onClick={() => onApply(card.overrides)}
+            aria-label={`${card.label}: ${count} repos`}
             className="flex items-center gap-2 rounded-md border border-border-default bg-canvas-subtle px-2.5 py-1.5 text-left hover:border-accent-fg"
           >
             <span className={`w-6 h-6 rounded-full flex items-center justify-center text-white shrink-0 ${card.colorClass}`}>

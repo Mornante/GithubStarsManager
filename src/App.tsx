@@ -1,14 +1,20 @@
+import { lazy, Suspense } from 'react'
 import { Navigate, Route, Routes } from 'react-router-dom'
 import { useAuthStore } from './store/authStore'
 import Sidebar from './components/layout/Sidebar'
 import ToastContainer from './components/shared/ToastContainer'
-import LoginPage from './routes/LoginPage'
+import ErrorBoundary from './components/shared/ErrorBoundary'
+import Loader from './components/shared/Loader'
 import HomePage from './routes/HomePage'
-import RepoListPage from './routes/RepoListPage'
-import DiscoveryPage from './routes/DiscoveryPage'
-import OrganizationsPage from './routes/OrganizationsPage'
-import DeploymentsPage from './routes/DeploymentsPage'
-import NotesPage from './routes/NotesPage'
+
+// Lazy-loaded: HomePage is the landing page for a freshly authenticated
+// session and stays eager, but everything else can wait for its own chunk.
+const LoginPage = lazy(() => import('./routes/LoginPage'))
+const RepoListPage = lazy(() => import('./routes/RepoListPage'))
+const DiscoveryPage = lazy(() => import('./routes/DiscoveryPage'))
+const OrganizationsPage = lazy(() => import('./routes/OrganizationsPage'))
+const DeploymentsPage = lazy(() => import('./routes/DeploymentsPage'))
+const NotesPage = lazy(() => import('./routes/NotesPage'))
 
 function AuthGate({ children }: { children: React.ReactNode }) {
   const account = useAuthStore((s) => s.currentAccount())
@@ -26,58 +32,62 @@ function AuthGate({ children }: { children: React.ReactNode }) {
 export default function App() {
   return (
     <>
-      <Routes>
-        <Route path="/login" element={<LoginPage />} />
-        <Route
-          path="/"
-          element={
-            <AuthGate>
-              <HomePage />
-            </AuthGate>
-          }
-        />
-        <Route
-          path="/repos"
-          element={
-            <AuthGate>
-              <RepoListPage />
-            </AuthGate>
-          }
-        />
-        <Route
-          path="/discovery"
-          element={
-            <AuthGate>
-              <DiscoveryPage />
-            </AuthGate>
-          }
-        />
-        <Route
-          path="/organizations"
-          element={
-            <AuthGate>
-              <OrganizationsPage />
-            </AuthGate>
-          }
-        />
-        <Route
-          path="/deployments"
-          element={
-            <AuthGate>
-              <DeploymentsPage />
-            </AuthGate>
-          }
-        />
-        <Route
-          path="/notes"
-          element={
-            <AuthGate>
-              <NotesPage />
-            </AuthGate>
-          }
-        />
-        <Route path="*" element={<Navigate to="/" replace />} />
-      </Routes>
+      <ErrorBoundary>
+        <Suspense fallback={<div className="p-6"><Loader label="Loading…" /></div>}>
+          <Routes>
+            <Route path="/login" element={<LoginPage />} />
+            <Route
+              path="/"
+              element={
+                <AuthGate>
+                  <HomePage />
+                </AuthGate>
+              }
+            />
+            <Route
+              path="/repos"
+              element={
+                <AuthGate>
+                  <RepoListPage />
+                </AuthGate>
+              }
+            />
+            <Route
+              path="/discovery"
+              element={
+                <AuthGate>
+                  <DiscoveryPage />
+                </AuthGate>
+              }
+            />
+            <Route
+              path="/organizations"
+              element={
+                <AuthGate>
+                  <OrganizationsPage />
+                </AuthGate>
+              }
+            />
+            <Route
+              path="/deployments"
+              element={
+                <AuthGate>
+                  <DeploymentsPage />
+                </AuthGate>
+              }
+            />
+            <Route
+              path="/notes"
+              element={
+                <AuthGate>
+                  <NotesPage />
+                </AuthGate>
+              }
+            />
+            <Route path="*" element={<Navigate to="/" replace />} />
+          </Routes>
+        </Suspense>
+      </ErrorBoundary>
       <ToastContainer />
     </>
   )

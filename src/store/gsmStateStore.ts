@@ -1,6 +1,7 @@
 import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
 import { findOrCreateGsmStateGist, writeGsmState } from '../api/gistApi'
+import { GithubApiError } from '../api/githubClient'
 import { useToastStore } from './toastStore'
 import { emptyGsmState } from '../types/gsmState'
 import type { GsmStateFile, ReviewStage, DeploymentRecord, NoteRecord } from '../types/gsmState'
@@ -28,6 +29,17 @@ function toast(message: string) {
   useToastStore.getState().show(message)
 }
 
+// A 403 here almost always means the connected token predates (or was
+// recreated without) the "gist" scope that findOrCreateGsmStateGist's
+// /gists calls require — surface that directly instead of a generic
+// "403 Forbidden" the user has no way to act on.
+function describeLoadError(err: unknown): string {
+  if (err instanceof GithubApiError && err.status === 403) {
+    return 'Your token is missing the "gist" scope needed for GSM:STATE (tags, deployments, notes). Add that scope to your personal access token and reconnect.'
+  }
+  return err instanceof Error ? err.message : 'Failed to load GSM:STATE gist'
+}
+
 const emptyUserGsm: UserGsmState = { gistId: null, state: emptyGsmState() }
 
 export const useGsmStateStore = create<GsmStateStoreShape>()(
@@ -43,7 +55,7 @@ export const useGsmStateStore = create<GsmStateStoreShape>()(
           const { gistId, state } = await findOrCreateGsmStateGist(token)
           set((s) => ({ byUser: { ...s.byUser, [userId]: { gistId, state } }, status: 'idle' }))
         } catch (err) {
-          set({ status: 'error', error: err instanceof Error ? err.message : 'Failed to load GSM:STATE gist' })
+          set({ status: 'error', error: describeLoadError(err) })
         }
       },
 

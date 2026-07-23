@@ -2,6 +2,7 @@ import { useStarredRepos } from '../hooks/useStarredRepos'
 import { useAuthStore } from '../store/authStore'
 import ReviewWorkflowExplainer from '../components/home/ReviewWorkflowExplainer'
 import FeatureHighlights from '../components/home/FeatureHighlights'
+import Loader from '../components/shared/Loader'
 
 export default function HomePage() {
   const { repos, status, error, retry } = useStarredRepos()
@@ -10,9 +11,7 @@ export default function HomePage() {
 
   return (
     <div className="space-y-8">
-      {status === 'syncing' && repos.length === 0 && (
-        <p className="text-sm text-fg-muted">Loading your starred repositories…</p>
-      )}
+      {status === 'syncing' && repos.length === 0 && <Loader label="Loading your starred repositories…" />}
       {status === 'error' && (
         <div className="rounded-md border border-danger-fg/40 bg-danger-fg/10 px-4 py-3 text-sm text-danger-fg flex items-center justify-between gap-4">
           <span>Failed to sync with GitHub: {error}</span>

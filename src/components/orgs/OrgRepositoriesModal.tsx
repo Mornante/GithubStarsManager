@@ -5,6 +5,8 @@ import { fetchOrgRepositories } from '../../api/orgsApi'
 import { useInfiniteScrollSentinel } from '../../hooks/useInfiniteScrollSentinel'
 import RepoGrid from '../repos/RepoGrid'
 import RepoDetailModal from '../repos/RepoDetailModal'
+import Modal from '../shared/Modal'
+import Loader from '../shared/Loader'
 
 export default function OrgRepositoriesModal({
   org,
@@ -77,65 +79,61 @@ export default function OrgRepositoriesModal({
   return (
     <>
       {!openRepoKey && (
-        <div
-          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm"
-          onClick={onClose}
+        <Modal
+          onClose={onClose}
+          labelledBy="org-repositories-modal-title"
+          className="w-full max-w-4xl max-h-[85vh] overflow-hidden rounded-md border border-border-default bg-canvas flex flex-col"
         >
-          <div
-            className="w-full max-w-4xl max-h-[85vh] overflow-hidden rounded-md border border-border-default bg-canvas flex flex-col"
-            onClick={(e) => e.stopPropagation()}
-          >
-            <div className="border-b border-border-default p-4 flex items-center justify-between gap-4">
-              <div>
-                <h3 className="text-base font-semibold">{org.login} — repositories</h3>
-                {totalCount !== null && (
-                  <p className="text-xs text-fg-muted">{totalCount.toLocaleString()} public repos</p>
-                )}
-              </div>
-              <button
-                type="button"
-                onClick={onClose}
-                aria-label="Close"
-                className="text-fg-muted hover:text-fg-default text-xl leading-none px-1"
-              >
-                ×
-              </button>
-            </div>
-
-            <div className="flex-1 overflow-y-auto p-4">
-              {status === 'error' && <p className="text-sm text-danger-fg">{error}</p>}
-              {status === 'loading' && repos.length === 0 ? (
-                <p className="text-sm text-fg-muted py-8 text-center">Loading repositories…</p>
-              ) : (
-                <>
-                  <RepoGrid
-                    repos={mergedRepos}
-                    lists={lists}
-                    view="grid"
-                    onOpenRepo={(nameWithOwner) => setOpenRepoKey(nameWithOwner)}
-                  />
-                  {repos.length > 0 && (
-                    <div ref={sentinelRef} className="py-4 text-center text-sm">
-                      {status === 'loadingMore' ? (
-                        <span className="text-fg-muted">Loading more…</span>
-                      ) : hasMore ? (
-                        <button
-                          type="button"
-                          onClick={loadMore}
-                          className="text-fg-muted hover:text-fg-default underline"
-                        >
-                          Load more
-                        </button>
-                      ) : (
-                        <span className="text-fg-muted">Showing all {repos.length}</span>
-                      )}
-                    </div>
-                  )}
-                </>
+          <div className="border-b border-border-default p-4 flex items-center justify-between gap-4">
+            <div>
+              <h3 id="org-repositories-modal-title" className="text-base font-semibold">
+                {org.login} — repositories
+              </h3>
+              {totalCount !== null && (
+                <p className="text-xs text-fg-muted">{totalCount.toLocaleString()} public repos</p>
               )}
             </div>
+            <button
+              type="button"
+              onClick={onClose}
+              aria-label="Close"
+              className="text-fg-muted hover:text-fg-default text-xl leading-none px-1"
+            >
+              ×
+            </button>
           </div>
-        </div>
+
+          <div className="flex-1 overflow-y-auto p-4">
+            {status === 'error' && <p className="text-sm text-danger-fg">{error}</p>}
+            {status === 'loading' && repos.length === 0 ? (
+              <div className="py-8 text-center">
+                <Loader label="Loading repositories…" />
+              </div>
+            ) : (
+              <>
+                <RepoGrid
+                  repos={mergedRepos}
+                  lists={lists}
+                  view="grid"
+                  onOpenRepo={(nameWithOwner) => setOpenRepoKey(nameWithOwner)}
+                />
+                {repos.length > 0 && (
+                  <div ref={sentinelRef} className="py-4 text-center text-sm">
+                    {status === 'loadingMore' ? (
+                      <Loader label="Loading more…" size="sm" />
+                    ) : hasMore ? (
+                      <button type="button" onClick={loadMore} className="text-fg-muted hover:text-fg-default underline">
+                        Load more
+                      </button>
+                    ) : (
+                      <span className="text-fg-muted">Showing all {repos.length}</span>
+                    )}
+                  </div>
+                )}
+              </>
+            )}
+          </div>
+        </Modal>
       )}
 
       {openRepoKey && (

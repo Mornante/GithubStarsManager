@@ -4,6 +4,7 @@ import { useTrendingStore } from '../../store/trendingStore'
 import { useInfiniteScrollSentinel } from '../../hooks/useInfiniteScrollSentinel'
 import type { Repo } from '../../types/github'
 import type { TrendingWindow } from '../../utils/dateWindows'
+import Loader from '../shared/Loader'
 import TrendingCard from './TrendingCard'
 
 const WINDOW_OPTIONS: { value: TrendingWindow; label: string }[] = [
@@ -79,7 +80,7 @@ export default function TrendingSection({
         </div>
       </div>
 
-      {status === 'loading' && <p className="text-sm text-fg-muted">Loading trending repos…</p>}
+      {status === 'loading' && <Loader label="Loading trending repos…" />}
       {status === 'error' && <p className="text-sm text-danger-fg">{error}</p>}
       {status !== 'loading' && notYetStarred.length === 0 && (
         <p className="text-sm text-fg-muted">No unstarred trending repos found for this filter.</p>
@@ -94,7 +95,7 @@ export default function TrendingSection({
       {hasMore && (
         <div ref={sentinelRef} className="py-4 text-center text-sm">
           {status === 'loadingMore' ? (
-            <span className="text-fg-muted">Loading more…</span>
+            <Loader label="Loading more…" size="sm" />
           ) : (
             <button type="button" onClick={loadMore} className="text-fg-muted hover:text-fg-default underline">
               Load more

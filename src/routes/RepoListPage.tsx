@@ -11,6 +11,7 @@ import FilterBar from '../components/repos/FilterBar'
 import ActiveFilterPills from '../components/repos/ActiveFilterPills'
 import RepoGrid from '../components/repos/RepoGrid'
 import RepoDetailModal from '../components/repos/RepoDetailModal'
+import Loader from '../components/shared/Loader'
 import { OcticonChevronDown } from '../components/icons/Octicons'
 
 const REPOS_PAGE_SIZE = 60
@@ -124,7 +125,9 @@ export default function RepoListPage() {
       </div>
 
       {status === 'syncing' && repos.length === 0 ? (
-        <p className="text-sm text-fg-muted py-8 text-center">Loading your starred repositories…</p>
+        <div className="py-8 text-center">
+          <Loader label="Loading your starred repositories…" />
+        </div>
       ) : (
         <div className="pt-4">
           <RepoGrid

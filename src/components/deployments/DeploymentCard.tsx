@@ -1,12 +1,13 @@
-import { useEffect, useState } from 'react'
+import { memo } from 'react'
 import { useAuthStore } from '../../store/authStore'
-import { fetchRepoDeploymentInfo, type RepoDeploymentInfo } from '../../api/deploymentsApi'
+import { useRepoDeploymentInfo } from '../../hooks/useRepoDeploymentInfo'
 import { computeDeploymentDrift } from '../../selectors/deploymentDrift'
 import type { DeploymentRecord } from '../../types/gsmState'
 import type { Repo } from '../../types/github'
 import DriftBadge from '../shared/DriftBadge'
+import Loader from '../shared/Loader'
 
-export default function DeploymentCard({
+function DeploymentCard({
   repo,
   record,
   onOpen,
@@ -16,34 +17,14 @@ export default function DeploymentCard({
   onOpen: () => void
 }) {
   const account = useAuthStore((s) => s.currentAccount())
-  const [info, setInfo] = useState<RepoDeploymentInfo | null>(null)
-  const [loading, setLoading] = useState(true)
-
-  useEffect(() => {
-    if (!account) return
-    let cancelled = false
-    setLoading(true)
-    fetchRepoDeploymentInfo(account.token, repo.owner.login, repo.name)
-      .then((result) => {
-        if (!cancelled) {
-          setInfo(result)
-          setLoading(false)
-        }
-      })
-      .catch(() => {
-        if (!cancelled) setLoading(false)
-      })
-    return () => {
-      cancelled = true
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [account, repo.nameWithOwner])
+  const { info, loading } = useRepoDeploymentInfo(account?.token, repo.owner.login, repo.name)
 
   const drift = record && info ? computeDeploymentDrift(record, info) : null
 
   return (
-    <div
-      className="border border-border-default rounded-md bg-canvas-subtle hover:border-accent-fg transition-colors cursor-pointer p-4 flex flex-col gap-2"
+    <button
+      type="button"
+      className="w-full text-left border border-border-default rounded-md bg-canvas-subtle hover:border-accent-fg transition-colors cursor-pointer p-4 flex flex-col gap-2"
       onClick={onOpen}
     >
       <span className="font-mono text-sm font-medium truncate block">{repo.nameWithOwner}</span>
@@ -57,11 +38,13 @@ export default function DeploymentCard({
       )}
       <div className="mt-1">
         {loading ? (
-          <span className="text-xs text-fg-muted">Checking…</span>
+          <Loader label="Checking…" size="sm" />
         ) : drift ? (
           <DriftBadge drift={drift} />
         ) : null}
       </div>
-    </div>
+    </button>
   )
 }
+
+export default memo(DeploymentCard)

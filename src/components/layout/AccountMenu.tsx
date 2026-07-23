@@ -1,10 +1,10 @@
-import { useState } from 'react'
 import { useAuthStore } from '../../store/authStore'
 import { useTheme } from '../../hooks/useTheme'
+import { useDismissableOpen } from '../../hooks/useDismissableOpen'
 import { OcticonChevronUpDown, OcticonMoon, OcticonSignOut, OcticonSun } from '../icons/Octicons'
 
 export default function AccountMenu({ collapsed = false }: { collapsed?: boolean }) {
-  const [open, setOpen] = useState(false)
+  const { open, setOpen, ref } = useDismissableOpen<HTMLDivElement>()
   const account = useAuthStore((s) => s.currentAccount())
   const logout = useAuthStore((s) => s.logout)
   const { theme, toggleTheme } = useTheme()
@@ -12,9 +12,10 @@ export default function AccountMenu({ collapsed = false }: { collapsed?: boolean
   if (!account) return null
 
   return (
-    <div className="relative" onBlur={() => setTimeout(() => setOpen(false), 150)}>
+    <div ref={ref} className="relative">
       {open && (
         <div
+          role="menu"
           className={`absolute bottom-full left-0 mb-2 min-w-56 rounded-md border border-border-default bg-canvas-overlay shadow-lg p-2 space-y-1 ${
             collapsed ? 'w-56' : 'w-full'
           }`}
@@ -33,6 +34,7 @@ export default function AccountMenu({ collapsed = false }: { collapsed?: boolean
 
           <button
             type="button"
+            role="menuitem"
             onClick={toggleTheme}
             className="w-full flex items-center gap-2 px-2 py-1.5 text-sm rounded hover:bg-canvas-subtle"
           >
@@ -44,7 +46,11 @@ export default function AccountMenu({ collapsed = false }: { collapsed?: boolean
 
           <button
             type="button"
-            onClick={logout}
+            role="menuitem"
+            onClick={() => {
+              logout()
+              setOpen(false)
+            }}
             className="w-full flex items-center gap-2 px-2 py-1.5 text-sm rounded text-danger-fg hover:bg-danger-fg/10"
           >
             <OcticonSignOut />
@@ -55,6 +61,8 @@ export default function AccountMenu({ collapsed = false }: { collapsed?: boolean
 
       <button
         type="button"
+        aria-haspopup="menu"
+        aria-expanded={open}
         onClick={() => setOpen((o) => !o)}
         title={collapsed ? (account.user.name ?? account.user.login) : undefined}
         className={`w-full flex items-center gap-2 rounded-md p-2 hover:bg-canvas-subtle ${

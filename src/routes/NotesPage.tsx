@@ -4,6 +4,7 @@ import { useGsmState } from '../hooks/useGsmState'
 import { useRepoModal } from '../hooks/useRepoModal'
 import NoteCard from '../components/notes/NoteCard'
 import NoteModal from '../components/repos/NoteModal'
+import Loader from '../components/shared/Loader'
 
 export default function NotesPage() {
   const { repos, status } = useStarredRepos()
@@ -36,7 +37,7 @@ export default function NotesPage() {
       )}
 
       {status === 'syncing' && repos.length === 0 ? (
-        <p className="text-sm text-fg-muted">Loading your starred repositories…</p>
+        <Loader label="Loading your starred repositories…" />
       ) : notedRepos.length === 0 ? (
         <p className="text-sm text-fg-muted">
           No notes yet. Open a starred repo's Actions menu and choose "Notes…" to write one.

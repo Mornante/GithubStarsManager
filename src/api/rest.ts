@@ -109,11 +109,20 @@ interface ReadmeResponse {
   encoding: string
 }
 
+// `atob` only decodes to Latin-1 code points — routing those bytes through
+// TextDecoder (rather than the deprecated `escape`/`decodeURIComponent`
+// pairing) correctly reassembles the original UTF-8 text, including
+// non-Latin1 README content.
+function decodeBase64Utf8(base64: string): string {
+  const bytes = Uint8Array.from(atob(base64), (c) => c.charCodeAt(0))
+  return new TextDecoder().decode(bytes)
+}
+
 export async function getReadme(token: string, owner: string, repo: string): Promise<string | null> {
   try {
     const data = await githubRest<ReadmeResponse>(token, `/repos/${owner}/${repo}/readme`)
     const base64 = data.content.replace(/\n/g, '')
-    return decodeURIComponent(escape(atob(base64)))
+    return decodeBase64Utf8(base64)
   } catch {
     return null
   }
@@ -125,7 +134,7 @@ export async function getOrgProfileReadme(token: string, login: string): Promise
   try {
     const data = await githubRest<ReadmeResponse>(token, `/repos/${login}/.github/contents/profile/README.md`)
     const base64 = data.content.replace(/\n/g, '')
-    return decodeURIComponent(escape(atob(base64)))
+    return decodeBase64Utf8(base64)
   } catch {
     return null
   }

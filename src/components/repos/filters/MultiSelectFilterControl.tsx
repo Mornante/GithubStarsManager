@@ -1,9 +1,9 @@
-import { useState } from 'react'
 import type { FilterControlProps } from '../../../types/filters'
+import { useDismissableOpen } from '../../../hooks/useDismissableOpen'
 import { OcticonChevronDown } from '../../icons/Octicons'
 
 export default function MultiSelectFilterControl({ value, options = [], onChange }: FilterControlProps<string[]>) {
-  const [open, setOpen] = useState(false)
+  const { open, setOpen, ref } = useDismissableOpen<HTMLDivElement>()
   const selected = value ?? []
 
   function toggle(optionValue: string) {
@@ -15,11 +15,12 @@ export default function MultiSelectFilterControl({ value, options = [], onChange
   }
 
   return (
-    <div className="relative w-36">
+    <div ref={ref} className="relative w-36">
       <button
         type="button"
+        aria-haspopup="true"
+        aria-expanded={open}
         onClick={() => setOpen((o) => !o)}
-        onBlur={() => setTimeout(() => setOpen(false), 150)}
         className="w-full flex items-center justify-between gap-2 text-sm rounded-md border border-border-default bg-canvas pl-3 pr-2 py-1.5 hover:bg-canvas-subtle text-left"
       >
         <span className="truncate">{selected.length > 0 ? `${selected.length} selected` : 'Any'}</span>

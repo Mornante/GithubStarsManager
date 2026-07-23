@@ -1,10 +1,12 @@
-import { useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { useAuthStore } from '../../store/authStore'
 import { useGsmStateStore, useGsmUserState } from '../../store/gsmStateStore'
 import { getReadme } from '../../api/rest'
 import type { Repo } from '../../types/github'
 import MarkdownContent from '../shared/MarkdownContent'
 import ConfirmDialog from '../shared/ConfirmDialog'
+import Modal from '../shared/Modal'
+import Loader from '../shared/Loader'
 import ReadmePreview from './ReadmePreview'
 
 type Tab = 'view' | 'edit' | 'readme'
@@ -22,6 +24,11 @@ export default function NoteModal({ repo, onClose }: { repo: Repo; onClose: () =
   const [draft, setDraft] = useState(record?.content ?? '')
   const [saving, setSaving] = useState(false)
   const [confirmingDelete, setConfirmingDelete] = useState(false)
+  const textareaRef = useRef<HTMLTextAreaElement>(null)
+
+  useEffect(() => {
+    if (tab === 'edit') textareaRef.current?.focus()
+  }, [tab])
 
   function handleEditClick() {
     setDraft(record?.content ?? '')
@@ -48,16 +55,14 @@ export default function NoteModal({ repo, onClose }: { repo: Repo; onClose: () =
   }
 
   return (
-    <div
-      className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm"
-      onClick={onClose}
-    >
-      <div
+    <>
+      <Modal
+        onClose={onClose}
+        labelledBy="note-modal-title"
         className="w-full max-w-5xl h-[90vh] overflow-hidden rounded-md border border-border-default bg-canvas flex flex-col"
-        onClick={(e) => e.stopPropagation()}
       >
         <div className="flex items-center justify-between p-4 border-b border-border-default">
-          <h3 className="text-base font-semibold">
+          <h3 id="note-modal-title" className="text-base font-semibold">
             Notes —{' '}
             <a
               href={repo.url}
@@ -113,7 +118,7 @@ export default function NoteModal({ repo, onClose }: { repo: Repo; onClose: () =
 
         <div className="flex-1 overflow-y-auto p-4">
           {!gsm.gistId ? (
-            <p className="text-sm text-fg-muted">Loading your GSM:STATE gist…</p>
+            <Loader label="Loading your GSM:STATE gist…" />
           ) : tab === 'view' ? (
             hasNote ? (
               <>
@@ -136,11 +141,11 @@ export default function NoteModal({ repo, onClose }: { repo: Repo; onClose: () =
             )
           ) : (
             <textarea
+              ref={textareaRef}
               value={draft}
               onChange={(e) => setDraft(e.target.value)}
               placeholder="Write markdown notes about this repo…"
               className="w-full h-full font-mono text-sm rounded-md border border-border-default bg-canvas-subtle p-3 resize-none"
-              autoFocus
             />
           )}
         </div>
@@ -168,7 +173,7 @@ export default function NoteModal({ repo, onClose }: { repo: Repo; onClose: () =
             </button>
           )}
         </div>
-      </div>
+      </Modal>
 
       {confirmingDelete && (
         <ConfirmDialog
@@ -179,6 +184,6 @@ export default function NoteModal({ repo, onClose }: { repo: Repo; onClose: () =
           onCancel={() => setConfirmingDelete(false)}
         />
       )}
-    </div>
+    </>
   )
 }

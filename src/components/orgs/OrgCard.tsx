@@ -1,10 +1,12 @@
+import { memo } from 'react'
 import type { Organization } from '../../types/github'
 import { OcticonPeople, OcticonRepo, OcticonStar } from '../icons/Octicons'
 
-export default function OrgCard({ org, onOpen }: { org: Organization; onOpen: () => void }) {
+function OrgCard({ org, onOpen }: { org: Organization; onOpen: () => void }) {
   return (
-    <div
-      className="border border-border-default rounded-md bg-canvas-subtle hover:border-accent-fg transition-colors cursor-pointer p-4 flex flex-col gap-2"
+    <button
+      type="button"
+      className="w-full text-left border border-border-default rounded-md bg-canvas-subtle hover:border-accent-fg transition-colors cursor-pointer p-4 flex flex-col gap-2"
       onClick={onOpen}
     >
       <div className="flex items-center gap-2">
@@ -35,6 +37,8 @@ export default function OrgCard({ org, onOpen }: { org: Organization; onOpen: ()
         )}
         {org.location && <span>{org.location}</span>}
       </div>
-    </div>
+    </button>
   )
 }
+
+export default memo(OrgCard)

@@ -30,6 +30,7 @@ interface OrgsState {
   follow: (userId: string, token: string, org: Organization) => Promise<void>
   unfollow: (userId: string, token: string, org: Organization) => Promise<void>
   syncFollowStatus: (userId: string, token: string, org: Organization) => Promise<void>
+  discoverFollowedAmong: (userId: string, token: string, organizations: Organization[]) => Promise<void>
 }
 
 function toast(message: string) {
@@ -47,6 +48,11 @@ function reconcileFollowState(organizations: Organization[], followed: Record<st
   return organizations.map((org) => (followed[org.id] ? { ...org, viewerIsFollowing: true } : org))
 }
 
+// Shared by search/searchMore: if requests resolve out of order (e.g. a slow
+// early keystroke's response lands after a later one), only the response
+// matching the most recently issued request is allowed to update state.
+let latestSearchRequestId = 0
+
 export const useOrgsStore = create<OrgsState>()(
   persist(
     (set, get) => ({
@@ -62,12 +68,16 @@ export const useOrgsStore = create<OrgsState>()(
       setQuery: (query) => set({ query }),
 
       search: async (userId, token, query) => {
+        const requestId = ++latestSearchRequestId
         set({ status: 'loading', error: null, query })
         try {
           const { organizations, hasNextPage, endCursor } = await searchOrganizations(token, query)
+          if (requestId !== latestSearchRequestId) return
           const followed = get().followedByUser[userId] ?? {}
           set({ results: reconcileFollowState(organizations, followed), cursor: endCursor, hasMore: hasNextPage, status: 'idle' })
+          void get().discoverFollowedAmong(userId, token, organizations)
         } catch (err) {
+          if (requestId !== latestSearchRequestId) return
           set({ status: 'error', error: err instanceof Error ? err.message : 'Failed to search organizations' })
         }
       },
@@ -75,9 +85,11 @@ export const useOrgsStore = create<OrgsState>()(
       searchMore: async (userId, token) => {
         const { status, hasMore, cursor, query, results } = get()
         if (status === 'loading' || status === 'loadingMore' || !hasMore) return
+        const requestId = ++latestSearchRequestId
         set({ status: 'loadingMore', error: null })
         try {
           const { organizations, hasNextPage, endCursor } = await searchOrganizations(token, query, cursor)
+          if (requestId !== latestSearchRequestId) return
           const followed = get().followedByUser[userId] ?? {}
           set({
             results: [...results, ...reconcileFollowState(organizations, followed)],
@@ -85,7 +97,9 @@ export const useOrgsStore = create<OrgsState>()(
             hasMore: hasNextPage,
             status: 'idle',
           })
+          void get().discoverFollowedAmong(userId, token, organizations)
         } catch (err) {
+          if (requestId !== latestSearchRequestId) return
           set({ status: 'error', error: err instanceof Error ? err.message : 'Failed to load more organizations' })
         }
       },
@@ -153,6 +167,44 @@ export const useOrgsStore = create<OrgsState>()(
         } catch {
           // Best-effort — keep whatever we already had if this check fails.
         }
+      },
+
+      // GitHub has no bulk "orgs the viewer follows" endpoint, only a
+      // per-org check — so instead of only discovering a followed org when
+      // its detail modal happens to be opened, check every org that shows up
+      // in a page of search results in the background. Anything confirmed
+      // followed gets promoted into followedByUser (and out of "Popular
+      // organizations", since OrganizationsPage hides orgs already shown
+      // under "Following") without the user needing to click into it first.
+      discoverFollowedAmong: async (userId, token, organizations) => {
+        const followed = get().followedByUser[userId] ?? {}
+        const unknown = organizations.filter((org) => !followed[org.id])
+        if (unknown.length === 0) return
+
+        const checks = await Promise.allSettled(
+          unknown.map(async (org) => ({ org, isFollowing: await fetchOrgViewerIsFollowing(token, org.login) })),
+        )
+        const newlyFollowed = checks
+          .filter(
+            (r): r is PromiseFulfilledResult<{ org: Organization; isFollowing: boolean }> =>
+              r.status === 'fulfilled' && r.value.isFollowing,
+          )
+          .map((r) => r.value.org)
+        if (newlyFollowed.length === 0) return
+
+        set((state) => ({
+          results: newlyFollowed.reduce(
+            (acc, org) => patchOrgEverywhere(acc, org.id, { viewerIsFollowing: true }),
+            state.results,
+          ),
+          followedByUser: {
+            ...state.followedByUser,
+            [userId]: {
+              ...(state.followedByUser[userId] ?? {}),
+              ...Object.fromEntries(newlyFollowed.map((org) => [org.id, { ...org, viewerIsFollowing: true }])),
+            },
+          },
+        }))
       },
     }),
     { name: 'gh-stars-orgs', partialize: (state) => ({ followedByUser: state.followedByUser }) },

@@ -1,7 +1,8 @@
-import { useEffect, useState } from 'react'
+import { useState } from 'react'
 import type { Repo, StarList } from '../../types/github'
 import { useAuthStore } from '../../store/authStore'
 import { useStarsStore } from '../../store/starsStore'
+import { useAsync } from '../../hooks/useAsync'
 import { getReadme, getRepoDetails } from '../../api/rest'
 import { OcticonFork, OcticonStar } from '../icons/Octicons'
 import ReadmePreview from './ReadmePreview'
@@ -11,6 +12,7 @@ import CategoryListModal from './CategoryListModal'
 import DeploymentModal from './DeploymentModal'
 import NoteModal from './NoteModal'
 import ConfirmDialog from '../shared/ConfirmDialog'
+import Modal from '../shared/Modal'
 
 export default function RepoDetailModal({
   nameWithOwner,
@@ -28,34 +30,20 @@ export default function RepoDetailModal({
   const unstarRepo = useStarsStore((s) => s.unstarRepo)
 
   const storeRepo = repos.find((r) => r.nameWithOwner.toLowerCase() === nameWithOwner.toLowerCase())
-  const [fetchedRepo, setFetchedRepo] = useState<Repo | null>(null)
   const [starring, setStarring] = useState(false)
   const [activeSubModal, setActiveSubModal] = useState<'tag' | 'category' | 'deploy' | 'notes' | null>(null)
   const [confirmingUnstar, setConfirmingUnstar] = useState(false)
 
   const [owner, name] = nameWithOwner.split('/')
+
+  // Best-effort preview lookup for a repo that isn't starred yet (e.g. opened
+  // from Discovery) — the modal still renders using the fallback header
+  // (avatar/name derived from the URL) if this fails.
+  const detailsFetcher = !storeRepo && account ? () => getRepoDetails(account.token, owner, name) : null
+  const { data: fetchedRepo } = useAsync(detailsFetcher, [nameWithOwner, storeRepo, account])
+
   const repo = storeRepo ?? fetchedRepo
   const isStarred = Boolean(storeRepo)
-
-  useEffect(() => {
-    if (storeRepo || !account) return
-    let cancelled = false
-    getRepoDetails(account.token, owner, name).then((details) => {
-      if (!cancelled) setFetchedRepo(details)
-    })
-    return () => {
-      cancelled = true
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [nameWithOwner, storeRepo, account])
-
-  useEffect(() => {
-    function onKeyDown(e: KeyboardEvent) {
-      if (e.key === 'Escape') onClose()
-    }
-    document.addEventListener('keydown', onKeyDown)
-    return () => document.removeEventListener('keydown', onKeyDown)
-  }, [onClose])
 
   async function handleStar() {
     if (!account) return
@@ -76,96 +64,87 @@ export default function RepoDetailModal({
   return (
     <>
       {!activeSubModal && (
-        <div
-          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm"
-          onClick={onClose}
+        <Modal
+          onClose={onClose}
+          labelledBy="repo-detail-modal-title"
+          className="w-full max-w-4xl max-h-[85vh] overflow-hidden rounded-md border border-border-default bg-canvas flex flex-col"
         >
-          <div
-            className="w-full max-w-4xl max-h-[85vh] overflow-hidden rounded-md border border-border-default bg-canvas flex flex-col"
-            onClick={(e) => e.stopPropagation()}
-          >
-            <div className="border-b border-border-default p-4 grid grid-cols-[1fr_auto_1fr] items-center gap-4">
-              <div className="flex items-start gap-3 min-w-0">
-                <img
-                  src={repo?.owner.avatarUrl ?? `https://github.com/${owner}.png`}
-                  alt=""
-                  className="w-10 h-10 rounded-full"
-                />
-                <div className="min-w-0">
-                  <a
-                    href={repo?.url ?? `https://github.com/${nameWithOwner}`}
-                    target="_blank"
-                    rel="noreferrer"
-                    className="font-mono text-lg font-semibold truncate hover:underline block"
-                  >
-                    {nameWithOwner}
-                  </a>
-                  {repo && (
-                    <div className="flex items-center gap-3 text-sm text-fg-muted mt-1">
-                      <span className="flex items-center gap-1">
-                        <OcticonStar /> {repo.stargazerCount.toLocaleString()}
-                      </span>
-                      <span className="flex items-center gap-1">
-                        <OcticonFork /> {repo.forkCount.toLocaleString()}
-                      </span>
-                      {repo.licenseInfo && <span>{repo.licenseInfo.spdxId ?? repo.licenseInfo.name}</span>}
-                      {repo.primaryLanguage && <span>{repo.primaryLanguage.name}</span>}
-                    </div>
-                  )}
-                </div>
-              </div>
-
-              <div className="flex justify-center">
-                <ActionsMenu
-                  isStarred={isStarred}
-                  starring={starring}
-                  onStar={handleStar}
-                  onUnstar={() => setConfirmingUnstar(true)}
-                  onOpenTag={() => setActiveSubModal('tag')}
-                  onOpenCategory={() => setActiveSubModal('category')}
-                  onOpenDeploy={() => setActiveSubModal('deploy')}
-                  onOpenNotes={() => setActiveSubModal('notes')}
-                />
-              </div>
-
-              <div className="flex justify-end">
-                <button
-                  type="button"
-                  onClick={onClose}
-                  aria-label="Close"
-                  className="text-fg-muted hover:text-fg-default text-xl leading-none px-1"
+          <div className="border-b border-border-default p-4 grid grid-cols-[1fr_auto_1fr] items-center gap-4">
+            <div className="flex items-start gap-3 min-w-0">
+              <img
+                src={repo?.owner.avatarUrl ?? `https://github.com/${owner}.png`}
+                alt=""
+                className="w-10 h-10 rounded-full"
+              />
+              <div className="min-w-0">
+                <a
+                  id="repo-detail-modal-title"
+                  href={repo?.url ?? `https://github.com/${nameWithOwner}`}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="font-mono text-lg font-semibold truncate hover:underline block"
                 >
-                  ×
-                </button>
+                  {nameWithOwner}
+                </a>
+                {repo && (
+                  <div className="flex items-center gap-3 text-sm text-fg-muted mt-1">
+                    <span className="flex items-center gap-1">
+                      <OcticonStar /> {repo.stargazerCount.toLocaleString()}
+                    </span>
+                    <span className="flex items-center gap-1">
+                      <OcticonFork /> {repo.forkCount.toLocaleString()}
+                    </span>
+                    {repo.licenseInfo && <span>{repo.licenseInfo.spdxId ?? repo.licenseInfo.name}</span>}
+                    {repo.primaryLanguage && <span>{repo.primaryLanguage.name}</span>}
+                  </div>
+                )}
               </div>
             </div>
 
-            <div className="flex-1 overflow-y-auto p-4">
-              {account && (
-                <ReadmePreview
-                  token={account.token}
-                  fetchKey={nameWithOwner}
-                  fetcher={(t) => getReadme(t, owner, name)}
-                  emptyMessage="No README found for this repository."
-                />
-              )}
+            <div className="flex justify-center">
+              <ActionsMenu
+                isStarred={isStarred}
+                starring={starring}
+                onStar={handleStar}
+                onUnstar={() => setConfirmingUnstar(true)}
+                onOpenTag={() => setActiveSubModal('tag')}
+                onOpenCategory={() => setActiveSubModal('category')}
+                onOpenDeploy={() => setActiveSubModal('deploy')}
+                onOpenNotes={() => setActiveSubModal('notes')}
+              />
+            </div>
+
+            <div className="flex justify-end">
+              <button
+                type="button"
+                onClick={onClose}
+                aria-label="Close"
+                className="text-fg-muted hover:text-fg-default text-xl leading-none px-1"
+              >
+                ×
+              </button>
             </div>
           </div>
-        </div>
+
+          <div className="flex-1 overflow-y-auto p-4">
+            {account && (
+              <ReadmePreview
+                token={account.token}
+                fetchKey={nameWithOwner}
+                fetcher={(t) => getReadme(t, owner, name)}
+                emptyMessage="No README found for this repository."
+              />
+            )}
+          </div>
+        </Modal>
       )}
 
-      {activeSubModal === 'tag' && repo && (
-        <TagStatusModal repo={repo} onClose={() => setActiveSubModal(null)} />
-      )}
+      {activeSubModal === 'tag' && repo && <TagStatusModal repo={repo} onClose={() => setActiveSubModal(null)} />}
       {activeSubModal === 'category' && repo && (
         <CategoryListModal repo={repo} lists={lists} onClose={() => setActiveSubModal(null)} />
       )}
-      {activeSubModal === 'deploy' && repo && (
-        <DeploymentModal repo={repo} onClose={() => setActiveSubModal(null)} />
-      )}
-      {activeSubModal === 'notes' && repo && (
-        <NoteModal repo={repo} onClose={() => setActiveSubModal(null)} />
-      )}
+      {activeSubModal === 'deploy' && repo && <DeploymentModal repo={repo} onClose={() => setActiveSubModal(null)} />}
+      {activeSubModal === 'notes' && repo && <NoteModal repo={repo} onClose={() => setActiveSubModal(null)} />}
 
       {confirmingUnstar && repo && (
         <ConfirmDialog

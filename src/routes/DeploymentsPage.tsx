@@ -4,6 +4,7 @@ import { useGsmState } from '../hooks/useGsmState'
 import { useRepoModal } from '../hooks/useRepoModal'
 import DeploymentCard from '../components/deployments/DeploymentCard'
 import DeploymentModal from '../components/repos/DeploymentModal'
+import Loader from '../components/shared/Loader'
 
 export default function DeploymentsPage() {
   const { repos, status } = useStarredRepos()
@@ -38,7 +39,7 @@ export default function DeploymentsPage() {
       )}
 
       {status === 'syncing' && repos.length === 0 ? (
-        <p className="text-sm text-fg-muted">Loading your starred repositories…</p>
+        <Loader label="Loading your starred repositories…" />
       ) : deployedRepos.length === 0 ? (
         <p className="text-sm text-fg-muted">
           Nothing tracked yet. Open a starred repo's Actions menu and choose "Deploy…" to start tracking one.

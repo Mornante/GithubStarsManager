@@ -2,6 +2,7 @@ import { useStarredRepos } from '../hooks/useStarredRepos'
 import { useRepoModal } from '../hooks/useRepoModal'
 import TrendingSection from '../components/dashboard/TrendingSection'
 import RepoDetailModal from '../components/repos/RepoDetailModal'
+import Loader from '../components/shared/Loader'
 
 export default function DiscoveryPage() {
   const { repos, lists, status } = useStarredRepos()
@@ -15,7 +16,7 @@ export default function DiscoveryPage() {
       </div>
 
       {status === 'syncing' && repos.length === 0 ? (
-        <p className="text-sm text-fg-muted">Loading your starred repositories…</p>
+        <Loader label="Loading your starred repositories…" />
       ) : (
         <TrendingSection repos={repos} onOpenRepo={openRepo} />
       )}
