@@ -1,0 +1,101 @@
+@import "tailwindcss";
+@plugin "@tailwindcss/typography";
+
+:root {
+  color-scheme: light;
+
+  --color-canvas: #ffffff;
+  --color-canvas-subtle: #f6f8fa;
+  --color-canvas-overlay: #ffffff;
+  --color-border-default: #d0d7de;
+  --color-border-muted: #d8dee4;
+  --color-fg-default: #1f2328;
+  --color-fg-muted: #656d76;
+  --color-fg-subtle: #6e7781;
+  --color-accent-fg: #0969da;
+  --color-accent-emphasis: #0969da;
+  --color-success-fg: #1a7f37;
+  --color-success-emphasis: #2da44e;
+  --color-attention-fg: #9a6700;
+  --color-attention-emphasis: #bf8700;
+  --color-done-fg: #8250df;
+  --color-done-emphasis: #8250df;
+  --color-danger-fg: #d1242f;
+  --color-danger-emphasis: #cf222e;
+  --color-grid-line: rgba(31, 35, 40, 0.06);
+  --color-grid-glow: rgba(9, 105, 218, 0.08);
+}
+
+:root.dark {
+  color-scheme: dark;
+
+  --color-canvas: #0d1117;
+  --color-canvas-subtle: #161b22;
+  --color-canvas-overlay: #161b22;
+  --color-border-default: #30363d;
+  --color-border-muted: #21262d;
+  --color-fg-default: #e6edf3;
+  --color-fg-muted: #7d8590;
+  --color-fg-subtle: #6e7681;
+  --color-accent-fg: #2f81f7;
+  --color-accent-emphasis: #2f81f7;
+  --color-success-fg: #3fb950;
+  --color-success-emphasis: #238636;
+  --color-attention-fg: #d29922;
+  --color-attention-emphasis: #9e6a03;
+  --color-done-fg: #a371f7;
+  --color-done-emphasis: #8957e5;
+  --color-danger-fg: #f85149;
+  --color-danger-emphasis: #da3633;
+  --color-grid-line: rgba(230, 237, 243, 0.06);
+  --color-grid-glow: rgba(47, 129, 247, 0.12);
+}
+
+@theme inline {
+  --color-canvas: var(--color-canvas);
+  --color-canvas-subtle: var(--color-canvas-subtle);
+  --color-canvas-overlay: var(--color-canvas-overlay);
+  --color-border-default: var(--color-border-default);
+  --color-border-muted: var(--color-border-muted);
+  --color-fg-default: var(--color-fg-default);
+  --color-fg-muted: var(--color-fg-muted);
+  --color-fg-subtle: var(--color-fg-subtle);
+  --color-accent-fg: var(--color-accent-fg);
+  --color-accent-emphasis: var(--color-accent-emphasis);
+  --color-success-fg: var(--color-success-fg);
+  --color-success-emphasis: var(--color-success-emphasis);
+  --color-attention-fg: var(--color-attention-fg);
+  --color-attention-emphasis: var(--color-attention-emphasis);
+  --color-done-fg: var(--color-done-fg);
+  --color-done-emphasis: var(--color-done-emphasis);
+  --color-danger-fg: var(--color-danger-fg);
+  --color-danger-emphasis: var(--color-danger-emphasis);
+
+  --font-sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji";
+  --font-mono: ui-monospace, "SFMono-Regular", "SF Mono", Consolas, "Liberation Mono", monospace;
+}
+
+body {
+  margin: 0;
+  background-color: var(--color-canvas);
+  color: var(--color-fg-default);
+  font-family: var(--font-sans);
+}
+
+body::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  background-image:
+    radial-gradient(ellipse 60% 40% at 50% 0%, var(--color-grid-glow), transparent 70%),
+    linear-gradient(var(--color-grid-line) 1px, transparent 1px),
+    linear-gradient(90deg, var(--color-grid-line) 1px, transparent 1px);
+  background-size:
+    100% 100%,
+    32px 32px,
+    32px 32px;
+  -webkit-mask-image: radial-gradient(ellipse 90% 65% at 50% 0%, black 35%, transparent 85%);
+  mask-image: radial-gradient(ellipse 90% 65% at 50% 0%, black 35%, transparent 85%);
+}
