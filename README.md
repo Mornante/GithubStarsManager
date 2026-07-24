@@ -20,16 +20,16 @@ Open the app and paste a [classic personal access token](https://github.com/sett
 
 ## Scripts
 
-| Script                | What it does                                      |
-| --------------------- | -------------------------------------------------- |
-| `npm run dev`         | Start the Vite dev server                         |
-| `npm run build`       | Type-check (`tsc -b`) and build for production    |
-| `npm run preview`     | Preview a production build locally                |
-| `npm run lint`        | Run oxlint                                        |
-| `npm test`            | Run the test suite once                           |
-| `npm run test:watch`  | Run the test suite in watch mode                  |
-| `npm run format`      | Format the codebase with Prettier                 |
-| `npm run format:check`| Check formatting without writing changes          |
+| Script                 | What it does                                   |
+| ---------------------- | ---------------------------------------------- |
+| `npm run dev`          | Start the Vite dev server                      |
+| `npm run build`        | Type-check (`tsc -b`) and build for production |
+| `npm run preview`      | Preview a production build locally             |
+| `npm run lint`         | Run oxlint                                     |
+| `npm test`             | Run the test suite once                        |
+| `npm run test:watch`   | Run the test suite in watch mode               |
+| `npm run format`       | Format the codebase with Prettier              |
+| `npm run format:check` | Check formatting without writing changes       |
 
 ## Project structure
 
