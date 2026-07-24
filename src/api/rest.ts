@@ -1,5 +1,5 @@
 import { githubRest } from './githubClient'
-import type { GithubUser, Repo } from '../types/github'
+import type { GithubUser, OrgMember, Repo } from '../types/github'
 
 interface ViewerResponse {
   id: number
@@ -64,17 +64,16 @@ export async function searchRepositories(
   return { items: data.items, totalCount: Math.min(data.total_count, SEARCH_API_RESULT_CAP) }
 }
 
+// GitHub's search-result user/org object is sparse — despite what older docs/
+// examples imply, `/search/users` does NOT actually return `bio`, `location`,
+// `blog`, `followers`, or `public_repos` in practice, only these fields. Full
+// profile data has to be fetched per-org afterward (see `getOrgDetails` in
+// orgsApi.ts) — this is not a redundant call, it's the only way to get that data.
 export interface OrgSearchResult {
   login: string
   node_id: string
   avatar_url: string
   html_url: string
-  name: string | null
-  bio: string | null
-  location: string | null
-  blog: string | null
-  followers: number
-  public_repos: number
 }
 
 interface SearchUsersResponse {
@@ -88,9 +87,8 @@ export interface SearchOrganizationsResult {
 }
 
 // The GraphQL `search` field has no sort option at all (relevance only), but the
-// REST Search API supports sort=followers and returns much richer profile fields
-// (bio, location, followers, public_repos) in a single call. `type:org` restricts
-// to organizations the same way it does in GraphQL search query text.
+// REST Search API supports sort=followers. `type:org` restricts to organizations
+// the same way it does in GraphQL search query text.
 export async function searchOrganizationsByFollowers(
   token: string,
   query: string,
@@ -137,6 +135,36 @@ export async function getOrgProfileReadme(token: string, login: string): Promise
     return decodeBase64Utf8(base64)
   } catch {
     return null
+  }
+}
+
+interface PublicMemberResponse {
+  login: string
+  avatar_url: string
+  html_url: string
+}
+
+export interface OrgMembersResult {
+  members: OrgMember[]
+  hasMore: boolean
+}
+
+const ORG_MEMBERS_PAGE_SIZE = 30
+
+// There is no GraphQL/REST way to list *all* members of an org without being
+// a member yourself — this only returns members who've chosen to make their
+// affiliation public, same as the "People" tab shows a logged-out visitor on
+// github.com. REST doesn't expose a total count here, so "more pages exist"
+// is inferred the same way SEARCH_PAGE_SIZE results are elsewhere: a full
+// page suggests there may be another.
+export async function fetchOrgPublicMembers(token: string, login: string, page = 1): Promise<OrgMembersResult> {
+  const data = await githubRest<PublicMemberResponse[]>(
+    token,
+    `/orgs/${login}/public_members?per_page=${ORG_MEMBERS_PAGE_SIZE}&page=${page}`,
+  )
+  return {
+    members: data.map((m) => ({ login: m.login, avatarUrl: m.avatar_url, url: m.html_url })),
+    hasMore: data.length === ORG_MEMBERS_PAGE_SIZE,
   }
 }
 

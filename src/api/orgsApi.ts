@@ -1,30 +1,68 @@
-import { githubGraphql } from './githubClient'
+import { githubGraphql, githubRest } from './githubClient'
 import { SEARCH_PAGE_SIZE, searchOrganizationsByFollowers, type OrgSearchResult } from './rest'
 import {
   FOLLOW_ORGANIZATION_MUTATION,
+  ORG_PROJECTS_QUERY,
   ORG_REPOSITORIES_QUERY,
   ORG_VIEWER_FOLLOWING_QUERY,
   UNFOLLOW_ORGANIZATION_MUTATION,
 } from './queries'
-import type { Organization, Repo } from '../types/github'
+import type { Organization, OrgProject, Repo } from '../types/github'
 
+// Search results only ever carry login/avatar/url (see the comment on
+// OrgSearchResult) — everything else starts null and is filled in afterward
+// by enrichOrgProfiles (store/orgsStore.ts) calling getOrgDetails below.
 function mapOrg(item: OrgSearchResult): Organization {
   return {
     id: item.node_id,
     login: item.login,
-    name: item.name,
+    name: null,
     avatarUrl: item.avatar_url,
-    description: item.bio,
+    description: null,
     url: item.html_url,
-    websiteUrl: item.blog || null,
-    location: item.location,
-    repoCount: item.public_repos,
-    memberCount: null, // not exposed by the REST search endpoint
-    followerCount: item.followers,
+    websiteUrl: null,
+    location: null,
+    repoCount: null,
+    memberCount: null,
+    followerCount: null,
     // REST search can't tell us per-viewer follow state — callers reconcile
     // this against the locally-followed cache, and OrgDetailModal re-checks
     // the real value via GraphQL when a specific org is opened.
     viewerIsFollowing: false,
+  }
+}
+
+interface OrgDetailsResponse {
+  login: string
+  node_id: string
+  name: string | null
+  description: string | null
+  avatar_url: string
+  html_url: string
+  blog: string | null
+  location: string | null
+  followers: number
+  public_repos: number
+}
+
+// The one REST endpoint that actually returns an org's follower count, location,
+// and website — `GET /orgs/{login}` (its "Get an organization" full profile),
+// as opposed to the sparse search-result object mapOrg builds from.
+export async function getOrgDetails(token: string, login: string): Promise<Organization> {
+  const data = await githubRest<OrgDetailsResponse>(token, `/orgs/${login}`)
+  return {
+    id: data.node_id,
+    login: data.login,
+    name: data.name,
+    avatarUrl: data.avatar_url,
+    description: data.description,
+    url: data.html_url,
+    websiteUrl: data.blog || null,
+    location: data.location,
+    repoCount: data.public_repos,
+    memberCount: null, // not exposed by this endpoint either
+    followerCount: data.followers,
+    viewerIsFollowing: false, // caller merges in the real follow state separately
   }
 }
 
@@ -111,6 +149,38 @@ export async function fetchOrgRepositories(
     listIds: [],
   }))
   return { repos, totalCount, hasNextPage: pageInfo.hasNextPage, endCursor: pageInfo.endCursor }
+}
+
+interface OrgProjectsResponse {
+  organization: {
+    projectsV2: {
+      totalCount: number
+      pageInfo: { hasNextPage: boolean; endCursor: string | null }
+      nodes: OrgProject[]
+    }
+  } | null
+}
+
+export interface OrgProjectsResult {
+  projects: OrgProject[]
+  totalCount: number
+  hasNextPage: boolean
+  endCursor: string | null
+}
+
+export async function fetchOrgProjects(
+  token: string,
+  login: string,
+  cursor: string | null = null,
+): Promise<OrgProjectsResult> {
+  const data = await githubGraphql<OrgProjectsResponse>(token, ORG_PROJECTS_QUERY, { login, cursor })
+  const conn = data.organization?.projectsV2
+  return {
+    projects: conn?.nodes ?? [],
+    totalCount: conn?.totalCount ?? 0,
+    hasNextPage: conn?.pageInfo.hasNextPage ?? false,
+    endCursor: conn?.pageInfo.endCursor ?? null,
+  }
 }
 
 export async function followOrganization(token: string, orgId: string): Promise<void> {

@@ -17,13 +17,13 @@ export default function TagStatusModal({ repo, onClose }: { repo: Repo; onClose:
   const setReviewTag = useGsmStateStore((s) => s.setReviewTag)
   const gsm = useGsmUserState(account?.user.id ?? null)
 
-  const activeKey = gsm.state.reviewTags[repo.id]
+  const activeKey = gsm.state.repos[repo.id]?.reviewTag
   const disabled = !gsm.gistId
 
   function handleClick(def: ReviewTagDef) {
     if (!account || !gsm.gistId) return
     const nextKey = activeKey === def.key ? null : def.key
-    void setReviewTag(account.user.id, account.token, repo.id, nextKey)
+    void setReviewTag(account.user.id, account.token, repo, nextKey)
     onClose()
   }
 

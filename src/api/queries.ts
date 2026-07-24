@@ -147,6 +147,31 @@ export const ORG_REPOSITORIES_QUERY = /* GraphQL */ `
   }
 `
 
+// Deliberately no `orderBy` — the exact ProjectV2Order enum member names
+// aren't verifiable without a live schema, and an invalid enum value would
+// fail the whole query. Default ordering is an acceptable trade-off.
+export const ORG_PROJECTS_QUERY = /* GraphQL */ `
+  query OrgProjects($login: String!, $cursor: String) {
+    organization(login: $login) {
+      projectsV2(first: 20, after: $cursor) {
+        totalCount
+        pageInfo {
+          hasNextPage
+          endCursor
+        }
+        nodes {
+          id
+          title
+          number
+          url
+          shortDescription
+          closed
+        }
+      }
+    }
+  }
+`
+
 // Powers the deployment drift check: latest releases (if the repo cuts them) and
 // latest commits on the default branch (for repos that just push to main).
 export const REPO_DEPLOYMENT_INFO_QUERY = /* GraphQL */ `

@@ -57,3 +57,18 @@ export interface Organization {
   followerCount: number | null
   viewerIsFollowing: boolean
 }
+
+export interface OrgProject {
+  id: string
+  title: string
+  number: number
+  url: string
+  shortDescription: string | null
+  closed: boolean
+}
+
+export interface OrgMember {
+  login: string
+  avatarUrl: string
+  url: string
+}

@@ -17,7 +17,7 @@ export default function NoteModal({ repo, onClose }: { repo: Repo; onClose: () =
   const setNote = useGsmStateStore((s) => s.setNote)
   const clearNote = useGsmStateStore((s) => s.clearNote)
 
-  const record = gsm.state.notes[repo.id]
+  const record = gsm.state.repos[repo.id]?.note
   const hasNote = Boolean(record?.content)
 
   const [tab, setTab] = useState<Tab>(hasNote ? 'view' : 'edit')
@@ -39,7 +39,7 @@ export default function NoteModal({ repo, onClose }: { repo: Repo; onClose: () =
     if (!account || !gsm.gistId) return
     setSaving(true)
     try {
-      await setNote(account.user.id, account.token, repo.id, draft)
+      await setNote(account.user.id, account.token, repo, draft)
       setTab('view')
     } finally {
       setSaving(false)
@@ -48,7 +48,7 @@ export default function NoteModal({ repo, onClose }: { repo: Repo; onClose: () =
 
   function handleConfirmDelete() {
     if (!account || !gsm.gistId) return
-    void clearNote(account.user.id, account.token, repo.id)
+    void clearNote(account.user.id, account.token, repo)
     setDraft('')
     setTab('edit')
     setConfirmingDelete(false)
@@ -120,7 +120,7 @@ export default function NoteModal({ repo, onClose }: { repo: Repo; onClose: () =
           {!gsm.gistId ? (
             <Loader label="Loading your GSM:STATE gist…" />
           ) : tab === 'view' ? (
-            hasNote ? (
+            hasNote && record ? (
               <>
                 <MarkdownContent content={record.content} />
                 <p className="text-xs text-fg-muted mt-4">

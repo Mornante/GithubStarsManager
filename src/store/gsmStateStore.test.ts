@@ -28,6 +28,7 @@ import { emptyGsmState } from '../types/gsmState'
 
 const USER_ID = 'u1'
 const TOKEN = 'token'
+const REPO = { id: 'r1', nameWithOwner: 'octo/hello-world' }
 
 beforeEach(() => {
   vi.clearAllMocks()
@@ -35,29 +36,76 @@ beforeEach(() => {
 })
 
 describe('setReviewTag', () => {
-  it('optimistically tags the repo, then persists it', async () => {
+  it('optimistically tags the repo, stamping its name, then persists it', async () => {
     useGsmStateStore.setState({ byUser: { [USER_ID]: { gistId: 'g1', state: emptyGsmState() } } })
     vi.mocked(writeGsmState).mockResolvedValue(undefined)
 
-    await useGsmStateStore.getState().setReviewTag(USER_ID, TOKEN, 'r1', 'REVIEW_REQUIRED')
+    await useGsmStateStore.getState().setReviewTag(USER_ID, TOKEN, REPO, 'REVIEW_REQUIRED')
 
-    expect(useGsmStateStore.getState().byUser[USER_ID].state.reviewTags).toEqual({ r1: 'REVIEW_REQUIRED' })
-    expect(writeGsmState).toHaveBeenCalledWith(TOKEN, 'g1', expect.objectContaining({ reviewTags: { r1: 'REVIEW_REQUIRED' } }))
+    expect(useGsmStateStore.getState().byUser[USER_ID].state.repos).toEqual({
+      r1: { nameWithOwner: 'octo/hello-world', reviewTag: 'REVIEW_REQUIRED' },
+    })
+    expect(writeGsmState).toHaveBeenCalledWith(
+      TOKEN,
+      'g1',
+      expect.objectContaining({ repos: { r1: { nameWithOwner: 'octo/hello-world', reviewTag: 'REVIEW_REQUIRED' } } }),
+    )
   })
 
-  it('rolls back to the previous tag state when the write fails', async () => {
-    const before = { gistId: 'g1', state: { ...emptyGsmState(), reviewTags: { r1: 'IN_REVIEW' as const } } }
+  it('drops the repo entry entirely when untagging leaves no other data', async () => {
+    const before = {
+      gistId: 'g1',
+      state: { ...emptyGsmState(), repos: { r1: { nameWithOwner: 'octo/hello-world', reviewTag: 'IN_REVIEW' as const } } },
+    }
+    useGsmStateStore.setState({ byUser: { [USER_ID]: before } })
+    vi.mocked(writeGsmState).mockResolvedValue(undefined)
+
+    await useGsmStateStore.getState().setReviewTag(USER_ID, TOKEN, REPO, null)
+
+    expect(useGsmStateStore.getState().byUser[USER_ID].state.repos).toEqual({})
+  })
+
+  it('keeps the repo entry when untagging leaves other data (e.g. a note)', async () => {
+    const before = {
+      gistId: 'g1',
+      state: {
+        ...emptyGsmState(),
+        repos: {
+          r1: {
+            nameWithOwner: 'octo/hello-world',
+            reviewTag: 'IN_REVIEW' as const,
+            note: { content: 'keep me', updatedAt: '2024-01-01T00:00:00Z' },
+          },
+        },
+      },
+    }
+    useGsmStateStore.setState({ byUser: { [USER_ID]: before } })
+    vi.mocked(writeGsmState).mockResolvedValue(undefined)
+
+    await useGsmStateStore.getState().setReviewTag(USER_ID, TOKEN, REPO, null)
+
+    expect(useGsmStateStore.getState().byUser[USER_ID].state.repos.r1).toEqual({
+      nameWithOwner: 'octo/hello-world',
+      note: { content: 'keep me', updatedAt: '2024-01-01T00:00:00Z' },
+    })
+  })
+
+  it('rolls back to the previous state when the write fails', async () => {
+    const before = {
+      gistId: 'g1',
+      state: { ...emptyGsmState(), repos: { r1: { nameWithOwner: 'octo/hello-world', reviewTag: 'IN_REVIEW' as const } } },
+    }
     useGsmStateStore.setState({ byUser: { [USER_ID]: before } })
     vi.mocked(writeGsmState).mockRejectedValue(new Error('gist write failed'))
 
-    await useGsmStateStore.getState().setReviewTag(USER_ID, TOKEN, 'r1', 'REVIEWED')
+    await useGsmStateStore.getState().setReviewTag(USER_ID, TOKEN, REPO, 'REVIEWED')
 
     expect(useGsmStateStore.getState().byUser[USER_ID]).toEqual(before)
     expect(useGsmStateStore.getState().error).toBe('gist write failed')
   })
 
   it('does nothing when the gist has not loaded yet', async () => {
-    await useGsmStateStore.getState().setReviewTag(USER_ID, TOKEN, 'r1', 'REVIEWED')
+    await useGsmStateStore.getState().setReviewTag(USER_ID, TOKEN, REPO, 'REVIEWED')
     expect(writeGsmState).not.toHaveBeenCalled()
   })
 })
@@ -68,15 +116,18 @@ describe('setDeployment', () => {
     vi.mocked(writeGsmState).mockResolvedValue(undefined)
     const record = { environment: 'production', deployedRef: 'v1.0.0', deployedRefType: 'release' as const, deployedAt: '2024-01-01T00:00:00Z' }
 
-    await useGsmStateStore.getState().setDeployment(USER_ID, TOKEN, 'r1', record)
+    await useGsmStateStore.getState().setDeployment(USER_ID, TOKEN, REPO, record)
 
-    expect(useGsmStateStore.getState().byUser[USER_ID].state.deployments).toEqual({ r1: record })
+    expect(useGsmStateStore.getState().byUser[USER_ID].state.repos.r1).toEqual({
+      nameWithOwner: 'octo/hello-world',
+      deployment: record,
+    })
   })
 })
 
 describe('load', () => {
   it('populates the user state from the found/created gist', async () => {
-    const state = { ...emptyGsmState(), reviewTags: { r1: 'REVIEWED' as const } }
+    const state = { ...emptyGsmState(), repos: { r1: { reviewTag: 'REVIEWED' as const } } }
     vi.mocked(findOrCreateGsmStateGist).mockResolvedValue({ gistId: 'g1', state })
 
     await useGsmStateStore.getState().load(USER_ID, TOKEN)
@@ -118,7 +169,7 @@ describe('persisted state merge (backfill)', () => {
     const currentState = { byUser: {}, status: 'idle', error: null }
     const persisted = {
       byUser: {
-        [USER_ID]: { gistId: 'g1', state: { version: 1, reviewTags: { r1: 'REVIEW_REQUIRED' } } },
+        [USER_ID]: { gistId: 'g1', state: { schemaVersion: '1.0.0', repos: { r1: { reviewTag: 'REVIEW_REQUIRED' } } } },
       },
     }
 
@@ -126,11 +177,7 @@ describe('persisted state merge (backfill)', () => {
       byUser: Record<string, { gistId: string | null; state: ReturnType<typeof emptyGsmState> }>
     }
 
-    expect(result.byUser[USER_ID].state).toEqual({
-      version: 1,
-      reviewTags: { r1: 'REVIEW_REQUIRED' },
-      deployments: {},
-      notes: {},
-    })
+    expect(result.byUser[USER_ID].state.repos).toEqual({ r1: { reviewTag: 'REVIEW_REQUIRED' } })
+    expect(result.byUser[USER_ID].state.kind).toBe('GSM:STATE')
   })
 })

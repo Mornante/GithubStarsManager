@@ -5,9 +5,28 @@ import { useOrgsStore } from '../../store/orgsStore'
 import { getOrgProfileReadme } from '../../api/rest'
 import { OcticonLinkExternal, OcticonPeople, OcticonRepo, OcticonStar } from '../icons/Octicons'
 import ReadmePreview from '../repos/ReadmePreview'
+import RepoDetailModal from '../repos/RepoDetailModal'
 import Modal from '../shared/Modal'
 import OrgActionsMenu from './OrgActionsMenu'
-import OrgRepositoriesModal from './OrgRepositoriesModal'
+import OrgRepositoriesTab from './OrgRepositoriesTab'
+import OrgProjectsTab from './OrgProjectsTab'
+import OrgPeopleTab from './OrgPeopleTab'
+
+type Tab = 'overview' | 'repositories' | 'projects' | 'people'
+
+function TabButton({ label, active, onClick }: { label: string; active: boolean; onClick: () => void }) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      className={`px-3 py-1.5 text-sm font-medium rounded-t-md ${
+        active ? 'bg-canvas-subtle border border-b-0 border-border-default' : 'text-fg-muted'
+      }`}
+    >
+      {label}
+    </button>
+  )
+}
 
 export default function OrgDetailModal({
   org,
@@ -25,7 +44,8 @@ export default function OrgDetailModal({
   const unfollow = useOrgsStore((s) => s.unfollow)
   const syncFollowStatus = useOrgsStore((s) => s.syncFollowStatus)
   const [following, setFollowing] = useState(false)
-  const [showRepos, setShowRepos] = useState(false)
+  const [tab, setTab] = useState<Tab>('overview')
+  const [openRepoKey, setOpenRepoKey] = useState<string | null>(null)
 
   useEffect(() => {
     if (account) void syncFollowStatus(account.user.id, account.token, org)
@@ -49,7 +69,7 @@ export default function OrgDetailModal({
 
   return (
     <>
-      {!showRepos && (
+      {!openRepoKey && (
         <Modal
           onClose={onClose}
           labelledBy="org-detail-modal-title"
@@ -106,7 +126,6 @@ export default function OrgDetailModal({
                 following={following}
                 onFollow={handleFollow}
                 onUnfollow={handleUnfollow}
-                onOpenRepositories={() => setShowRepos(true)}
               />
             </div>
 
@@ -122,8 +141,15 @@ export default function OrgDetailModal({
             </div>
           </div>
 
+          <div className="flex gap-1 px-4 pt-3 border-b border-border-default">
+            <TabButton label="Overview" active={tab === 'overview'} onClick={() => setTab('overview')} />
+            <TabButton label="Repositories" active={tab === 'repositories'} onClick={() => setTab('repositories')} />
+            <TabButton label="Projects" active={tab === 'projects'} onClick={() => setTab('projects')} />
+            <TabButton label="People" active={tab === 'people'} onClick={() => setTab('people')} />
+          </div>
+
           <div className="flex-1 overflow-y-auto p-4">
-            {account && (
+            {tab === 'overview' && account && (
               <ReadmePreview
                 token={account.token}
                 fetchKey={org.login}
@@ -131,16 +157,27 @@ export default function OrgDetailModal({
                 emptyMessage="This organization doesn't have a profile README."
               />
             )}
+            {tab === 'repositories' && account && (
+              <OrgRepositoriesTab
+                token={account.token}
+                login={org.login}
+                starredRepos={starredRepos}
+                lists={lists}
+                onOpenRepo={setOpenRepoKey}
+              />
+            )}
+            {tab === 'projects' && account && <OrgProjectsTab token={account.token} login={org.login} />}
+            {tab === 'people' && account && <OrgPeopleTab token={account.token} login={org.login} />}
           </div>
         </Modal>
       )}
 
-      {showRepos && (
-        <OrgRepositoriesModal
-          org={org}
-          starredRepos={starredRepos}
+      {openRepoKey && (
+        <RepoDetailModal
+          nameWithOwner={openRepoKey}
+          repos={starredRepos}
           lists={lists}
-          onClose={() => setShowRepos(false)}
+          onClose={() => setOpenRepoKey(null)}
         />
       )}
     </>

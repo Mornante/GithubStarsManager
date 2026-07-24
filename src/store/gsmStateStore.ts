@@ -4,11 +4,19 @@ import { findOrCreateGsmStateGist, writeGsmState } from '../api/gistApi'
 import { GithubApiError } from '../api/githubClient'
 import { useToastStore } from './toastStore'
 import { emptyGsmState } from '../types/gsmState'
-import type { GsmStateFile, ReviewStage, DeploymentRecord, NoteRecord } from '../types/gsmState'
+import type { GsmStateFile, ReviewStage, DeploymentRecord, RepoState } from '../types/gsmState'
 
 interface UserGsmState {
   gistId: string | null
   state: GsmStateFile
+}
+
+// What every store action needs to identify and label a repo entry — a
+// structural subset of `Repo`, kept local so this store doesn't have to
+// import the whole github types module for two fields.
+export interface RepoRef {
+  id: string
+  nameWithOwner: string
 }
 
 type SyncStatus = 'idle' | 'loading' | 'error'
@@ -18,11 +26,11 @@ interface GsmStateStoreShape {
   status: SyncStatus
   error: string | null
   load: (userId: string, token: string) => Promise<void>
-  setReviewTag: (userId: string, token: string, repoId: string, stage: ReviewStage | null) => Promise<void>
-  setDeployment: (userId: string, token: string, repoId: string, record: DeploymentRecord) => Promise<void>
-  clearDeployment: (userId: string, token: string, repoId: string) => Promise<void>
-  setNote: (userId: string, token: string, repoId: string, content: string) => Promise<void>
-  clearNote: (userId: string, token: string, repoId: string) => Promise<void>
+  setReviewTag: (userId: string, token: string, repo: RepoRef, stage: ReviewStage | null) => Promise<void>
+  setDeployment: (userId: string, token: string, repo: RepoRef, record: DeploymentRecord) => Promise<void>
+  clearDeployment: (userId: string, token: string, repo: RepoRef) => Promise<void>
+  setNote: (userId: string, token: string, repo: RepoRef, content: string) => Promise<void>
+  clearNote: (userId: string, token: string, repo: RepoRef) => Promise<void>
 }
 
 function toast(message: string) {
@@ -42,6 +50,36 @@ function describeLoadError(err: unknown): string {
 
 const emptyUserGsm: UserGsmState = { gistId: null, state: emptyGsmState() }
 
+// Sets a single field on a repo's entry (creating the entry if needed),
+// stamping/refreshing `nameWithOwner` on every write so the raw gist stays
+// human-readable even for repos the app has only ever seen an id for.
+function withRepoField<K extends 'reviewTag' | 'deployment' | 'note'>(
+  repos: Record<string, RepoState>,
+  repo: RepoRef,
+  field: K,
+  value: NonNullable<RepoState[K]>,
+): Record<string, RepoState> {
+  return { ...repos, [repo.id]: { ...repos[repo.id], nameWithOwner: repo.nameWithOwner, [field]: value } }
+}
+
+// Removes a single field from a repo's entry, dropping the entry entirely
+// once none of the real data fields (reviewTag/deployment/note) remain.
+function withoutRepoField(
+  repos: Record<string, RepoState>,
+  repoId: string,
+  field: 'reviewTag' | 'deployment' | 'note',
+): Record<string, RepoState> {
+  const existing = repos[repoId]
+  if (!existing) return repos
+  const rest: RepoState = { ...existing }
+  delete rest[field]
+  const hasOtherData = rest.reviewTag !== undefined || rest.deployment !== undefined || rest.note !== undefined
+  const next = { ...repos }
+  if (hasOtherData) next[repoId] = rest
+  else delete next[repoId]
+  return next
+}
+
 export const useGsmStateStore = create<GsmStateStoreShape>()(
   persist(
     (set, get) => ({
@@ -59,13 +97,13 @@ export const useGsmStateStore = create<GsmStateStoreShape>()(
         }
       },
 
-      setReviewTag: async (userId, token, repoId, stage) => {
+      setReviewTag: async (userId, token, repo, stage) => {
         const before = get().byUser[userId] ?? emptyUserGsm
         if (!before.gistId) return
-        const nextReviewTags = { ...before.state.reviewTags }
-        if (stage) nextReviewTags[repoId] = stage
-        else delete nextReviewTags[repoId]
-        const nextState: GsmStateFile = { ...before.state, reviewTags: nextReviewTags }
+        const nextRepos = stage
+          ? withRepoField(before.state.repos, repo, 'reviewTag', stage)
+          : withoutRepoField(before.state.repos, repo.id, 'reviewTag')
+        const nextState: GsmStateFile = { ...before.state, repos: nextRepos }
 
         set((s) => ({ byUser: { ...s.byUser, [userId]: { ...before, state: nextState } } }))
         try {
@@ -79,12 +117,12 @@ export const useGsmStateStore = create<GsmStateStoreShape>()(
         }
       },
 
-      setDeployment: async (userId, token, repoId, record) => {
+      setDeployment: async (userId, token, repo, record) => {
         const before = get().byUser[userId] ?? emptyUserGsm
         if (!before.gistId) return
         const nextState: GsmStateFile = {
           ...before.state,
-          deployments: { ...before.state.deployments, [repoId]: record },
+          repos: withRepoField(before.state.repos, repo, 'deployment', record),
         }
 
         set((s) => ({ byUser: { ...s.byUser, [userId]: { ...before, state: nextState } } }))
@@ -99,12 +137,13 @@ export const useGsmStateStore = create<GsmStateStoreShape>()(
         }
       },
 
-      clearDeployment: async (userId, token, repoId) => {
+      clearDeployment: async (userId, token, repo) => {
         const before = get().byUser[userId] ?? emptyUserGsm
         if (!before.gistId) return
-        const nextDeployments = { ...before.state.deployments }
-        delete nextDeployments[repoId]
-        const nextState: GsmStateFile = { ...before.state, deployments: nextDeployments }
+        const nextState: GsmStateFile = {
+          ...before.state,
+          repos: withoutRepoField(before.state.repos, repo.id, 'deployment'),
+        }
 
         set((s) => ({ byUser: { ...s.byUser, [userId]: { ...before, state: nextState } } }))
         try {
@@ -118,11 +157,14 @@ export const useGsmStateStore = create<GsmStateStoreShape>()(
         }
       },
 
-      setNote: async (userId, token, repoId, content) => {
+      setNote: async (userId, token, repo, content) => {
         const before = get().byUser[userId] ?? emptyUserGsm
         if (!before.gistId) return
-        const record: NoteRecord = { content, updatedAt: new Date().toISOString() }
-        const nextState: GsmStateFile = { ...before.state, notes: { ...before.state.notes, [repoId]: record } }
+        const record = { content, updatedAt: new Date().toISOString() }
+        const nextState: GsmStateFile = {
+          ...before.state,
+          repos: withRepoField(before.state.repos, repo, 'note', record),
+        }
 
         set((s) => ({ byUser: { ...s.byUser, [userId]: { ...before, state: nextState } } }))
         try {
@@ -136,12 +178,13 @@ export const useGsmStateStore = create<GsmStateStoreShape>()(
         }
       },
 
-      clearNote: async (userId, token, repoId) => {
+      clearNote: async (userId, token, repo) => {
         const before = get().byUser[userId] ?? emptyUserGsm
         if (!before.gistId) return
-        const nextNotes = { ...before.state.notes }
-        delete nextNotes[repoId]
-        const nextState: GsmStateFile = { ...before.state, notes: nextNotes }
+        const nextState: GsmStateFile = {
+          ...before.state,
+          repos: withoutRepoField(before.state.repos, repo.id, 'note'),
+        }
 
         set((s) => ({ byUser: { ...s.byUser, [userId]: { ...before, state: nextState } } }))
         try {
@@ -157,9 +200,11 @@ export const useGsmStateStore = create<GsmStateStoreShape>()(
     }),
     {
       name: 'gh-stars-gsm-state',
-      // Backfills any GsmStateFile field that didn't exist yet when this user's
-      // state was cached (e.g. "notes", added after some users already had a
-      // persisted gist) so old local caches never leave a field undefined.
+      // Backfills any GsmStateFile field that didn't exist yet when this
+      // user's state was cached (e.g. a gist read before "meta" existed) so
+      // old local caches never leave a field undefined. The gist itself gets
+      // upgraded through migrateGsmState on the next `load`; this is only
+      // about not crashing on the locally-cached copy before that happens.
       merge: (persistedState, currentState) => {
         const persisted = persistedState as Partial<GsmStateStoreShape> | undefined
         if (!persisted?.byUser) return { ...currentState, ...persisted }

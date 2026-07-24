@@ -4,6 +4,7 @@ import { persist } from 'zustand/middleware'
 import {
   fetchOrgViewerIsFollowing,
   followOrganization,
+  getOrgDetails,
   searchOrganizations,
   unfollowOrganization,
 } from '../api/orgsApi'
@@ -31,6 +32,7 @@ interface OrgsState {
   unfollow: (userId: string, token: string, org: Organization) => Promise<void>
   syncFollowStatus: (userId: string, token: string, org: Organization) => Promise<void>
   discoverFollowedAmong: (userId: string, token: string, organizations: Organization[]) => Promise<void>
+  enrichOrgProfiles: (userId: string, token: string, organizations: Organization[]) => Promise<void>
 }
 
 function toast(message: string) {
@@ -76,6 +78,7 @@ export const useOrgsStore = create<OrgsState>()(
           const followed = get().followedByUser[userId] ?? {}
           set({ results: reconcileFollowState(organizations, followed), cursor: endCursor, hasMore: hasNextPage, status: 'idle' })
           void get().discoverFollowedAmong(userId, token, organizations)
+          void get().enrichOrgProfiles(userId, token, organizations)
         } catch (err) {
           if (requestId !== latestSearchRequestId) return
           set({ status: 'error', error: err instanceof Error ? err.message : 'Failed to search organizations' })
@@ -98,6 +101,7 @@ export const useOrgsStore = create<OrgsState>()(
             status: 'idle',
           })
           void get().discoverFollowedAmong(userId, token, organizations)
+          void get().enrichOrgProfiles(userId, token, organizations)
         } catch (err) {
           if (requestId !== latestSearchRequestId) return
           set({ status: 'error', error: err instanceof Error ? err.message : 'Failed to load more organizations' })
@@ -205,6 +209,48 @@ export const useOrgsStore = create<OrgsState>()(
             },
           },
         }))
+      },
+
+      // Search results never carry follower count / location / website (see
+      // the comment on OrgSearchResult) — this fetches the real profile per
+      // org in the background via getOrgDetails and patches it in, the same
+      // "check everything, patch in whatever resolves" shape as
+      // discoverFollowedAmong. Also updates the cached followedByUser copy so
+      // an org's "Following" card gets the same enrichment, not just its
+      // appearance in search results.
+      enrichOrgProfiles: async (userId, token, organizations) => {
+        const needsEnrichment = organizations.filter((org) => org.followerCount == null)
+        if (needsEnrichment.length === 0) return
+
+        const settled = await Promise.allSettled(needsEnrichment.map((org) => getOrgDetails(token, org.login)))
+
+        set((state) => {
+          let results = state.results
+          const followedForUser = { ...(state.followedByUser[userId] ?? {}) }
+          let followedChanged = false
+
+          settled.forEach((outcome, i) => {
+            if (outcome.status !== 'fulfilled') return
+            const orgId = needsEnrichment[i].id
+            const patch: Partial<Organization> = {
+              name: outcome.value.name,
+              description: outcome.value.description,
+              websiteUrl: outcome.value.websiteUrl,
+              location: outcome.value.location,
+              repoCount: outcome.value.repoCount,
+              followerCount: outcome.value.followerCount,
+            }
+            results = patchOrgEverywhere(results, orgId, patch)
+            if (followedForUser[orgId]) {
+              followedForUser[orgId] = { ...followedForUser[orgId], ...patch }
+              followedChanged = true
+            }
+          })
+
+          return followedChanged
+            ? { results, followedByUser: { ...state.followedByUser, [userId]: followedForUser } }
+            : { results }
+        })
       },
     }),
     { name: 'gh-stars-orgs', partialize: (state) => ({ followedByUser: state.followedByUser }) },

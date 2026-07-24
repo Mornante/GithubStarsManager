@@ -1,9 +1,14 @@
 import { githubRest } from './githubClient'
 import { emptyGsmState } from '../types/gsmState'
 import type { GsmStateFile } from '../types/gsmState'
+import { migrateGsmState } from './gsmStateMigrations'
 
 const GIST_FILENAME = 'gsm-state.json'
 const GIST_DESCRIPTION = 'GSM:STATE'
+
+function snapshotFilename(version: string): string {
+  return `gsm-state.snapshot-v${version}.json`
+}
 
 interface GistListItem {
   id: string
@@ -32,9 +37,26 @@ export async function findOrCreateGsmStateGist(token: string): Promise<GsmStateG
   if (existing) {
     const full = await githubRest<GistFull>(token, `/gists/${existing.id}`)
     const raw = full.files[GIST_FILENAME]?.content
-    // Merge over the empty defaults so a gist written before a field (e.g.
-    // "notes") existed doesn't crash on read — it just starts empty for that field.
-    const state = raw ? { ...emptyGsmState(), ...(JSON.parse(raw) as Partial<GsmStateFile>) } : emptyGsmState()
+    if (!raw) return { gistId: existing.id, state: emptyGsmState() }
+
+    const parsed = JSON.parse(raw) as unknown
+    const { state, migratedFrom } = migrateGsmState(parsed)
+
+    if (migratedFrom) {
+      const snapshotName = snapshotFilename(migratedFrom)
+      const stamped: GsmStateFile = { ...state, meta: { ...state.meta, updatedAt: new Date().toISOString() } }
+      const files: Record<string, { content: string }> = {
+        [GIST_FILENAME]: { content: JSON.stringify(stamped, null, 2) },
+      }
+      // Don't clobber a snapshot already written by a previous upgrade — the
+      // first snapshot at a given version is the one worth keeping.
+      if (!(snapshotName in full.files)) {
+        files[snapshotName] = { content: JSON.stringify(parsed, null, 2) }
+      }
+      await githubRest(token, `/gists/${existing.id}`, { method: 'PATCH', body: { files } })
+      return { gistId: existing.id, state: stamped }
+    }
+
     return { gistId: existing.id, state }
   }
 

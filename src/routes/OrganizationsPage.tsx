@@ -12,7 +12,7 @@ export default function OrganizationsPage() {
   const account = useAuthStore((s) => s.currentAccount())
   const { repos, lists } = useStarredRepos()
   const followedOrgs = useFollowedOrgs(account?.user.id ?? null)
-  const { query, results, status, error, hasMore, search, searchMore } = useOrgsStore()
+  const { query, results, status, error, hasMore, search, searchMore, enrichOrgProfiles } = useOrgsStore()
 
   const [inputValue, setInputValue] = useState(query)
   const [selectedOrgId, setSelectedOrgId] = useState<string | null>(null)
@@ -27,6 +27,16 @@ export default function OrganizationsPage() {
     return () => clearTimeout(handle)
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [inputValue, account])
+
+  // Covers orgs followed before this enrichment existed (or discovered via
+  // discoverFollowedAmong from a search that isn't re-run every visit) — the
+  // "Following" section shouldn't require a fresh search to show real profile data.
+  useEffect(() => {
+    if (account && followedOrgs.length > 0) {
+      void enrichOrgProfiles(account.user.id, account.token, followedOrgs)
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [account, followedOrgs])
 
   const loadMore = useMemo(
     () => () => {

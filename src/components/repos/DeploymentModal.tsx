@@ -18,7 +18,7 @@ export default function DeploymentModal({ repo, onClose }: { repo: Repo; onClose
   const setDeployment = useGsmStateStore((s) => s.setDeployment)
   const clearDeployment = useGsmStateStore((s) => s.clearDeployment)
 
-  const record = gsm.state.deployments[repo.id]
+  const record = gsm.state.repos[repo.id]?.deployment
   const isDeployed = Boolean(record)
 
   const [tab, setTab] = useState<Tab>(isDeployed ? 'view' : 'edit')
@@ -71,7 +71,7 @@ export default function DeploymentModal({ repo, onClose }: { repo: Repo; onClose
         deployedRefType: refType,
         deployedAt: new Date().toISOString(),
       }
-      await setDeployment(account.user.id, account.token, repo.id, newRecord)
+      await setDeployment(account.user.id, account.token, repo, newRecord)
       setTab('view')
     } finally {
       setSaving(false)
@@ -80,7 +80,7 @@ export default function DeploymentModal({ repo, onClose }: { repo: Repo; onClose
 
   function handleConfirmRemove() {
     if (!account || !gsm.gistId) return
-    void clearDeployment(account.user.id, account.token, repo.id)
+    void clearDeployment(account.user.id, account.token, repo)
     setConfirmingRemove(false)
     onClose()
   }

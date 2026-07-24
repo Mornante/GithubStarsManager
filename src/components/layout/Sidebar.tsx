@@ -3,6 +3,7 @@ import { NavLink } from 'react-router-dom'
 import {
   OcticonChevronDown,
   OcticonHome,
+  OcticonIssueOpened,
   OcticonNote,
   OcticonOrganization,
   OcticonRepo,
@@ -18,6 +19,7 @@ const NAV_ITEMS = [
   { to: '/organizations', end: false, label: 'Organizations', icon: OcticonOrganization },
   { to: '/deployments', end: false, label: 'Deployments', icon: OcticonRocket },
   { to: '/notes', end: false, label: 'Notes', icon: OcticonNote },
+  { to: '/issues', end: false, label: 'Issues', icon: OcticonIssueOpened },
 ]
 
 const navLinkClass = (collapsed: boolean) =>
