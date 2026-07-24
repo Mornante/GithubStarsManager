@@ -13,6 +13,12 @@ import DeploymentModal from './DeploymentModal'
 import NoteModal from './NoteModal'
 import ConfirmDialog from '../shared/ConfirmDialog'
 import Modal from '../shared/Modal'
+import TabButton from '../shared/TabButton'
+import RepoIssuesTab from './RepoIssuesTab'
+import RepoPullRequestsTab from './RepoPullRequestsTab'
+import RepoProjectsTab from './RepoProjectsTab'
+
+type Tab = 'overview' | 'issues' | 'pullRequests' | 'projects'
 
 export default function RepoDetailModal({
   nameWithOwner,
@@ -33,6 +39,7 @@ export default function RepoDetailModal({
   const [starring, setStarring] = useState(false)
   const [activeSubModal, setActiveSubModal] = useState<'tag' | 'category' | 'deploy' | 'notes' | null>(null)
   const [confirmingUnstar, setConfirmingUnstar] = useState(false)
+  const [tab, setTab] = useState<Tab>('overview')
 
   const [owner, name] = nameWithOwner.split('/')
 
@@ -126,8 +133,15 @@ export default function RepoDetailModal({
             </div>
           </div>
 
+          <div className="flex gap-1 px-4 pt-3 border-b border-border-default">
+            <TabButton label="Overview" active={tab === 'overview'} onClick={() => setTab('overview')} />
+            <TabButton label="Issues" active={tab === 'issues'} onClick={() => setTab('issues')} />
+            <TabButton label="Pull requests" active={tab === 'pullRequests'} onClick={() => setTab('pullRequests')} />
+            <TabButton label="Projects" active={tab === 'projects'} onClick={() => setTab('projects')} />
+          </div>
+
           <div className="flex-1 overflow-y-auto p-4">
-            {account && (
+            {tab === 'overview' && account && (
               <ReadmePreview
                 token={account.token}
                 fetchKey={nameWithOwner}
@@ -135,6 +149,11 @@ export default function RepoDetailModal({
                 emptyMessage="No README found for this repository."
               />
             )}
+            {tab === 'issues' && account && <RepoIssuesTab token={account.token} owner={owner} name={name} />}
+            {tab === 'pullRequests' && account && (
+              <RepoPullRequestsTab token={account.token} owner={owner} name={name} />
+            )}
+            {tab === 'projects' && account && <RepoProjectsTab token={account.token} owner={owner} name={name} />}
           </div>
         </Modal>
       )}

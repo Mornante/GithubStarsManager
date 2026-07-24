@@ -172,6 +172,84 @@ export const ORG_PROJECTS_QUERY = /* GraphQL */ `
   }
 `
 
+// No `states` filter on either of these — open/closed/merged all show, matching
+// the other org-modal tabs' "no filter bar" simplicity (state is distinguished
+// by the row's own icon/color instead).
+export const REPO_ISSUES_QUERY = /* GraphQL */ `
+  query RepoIssues($owner: String!, $name: String!, $cursor: String) {
+    repository(owner: $owner, name: $name) {
+      issues(first: 20, after: $cursor, orderBy: { field: UPDATED_AT, direction: DESC }) {
+        totalCount
+        pageInfo {
+          hasNextPage
+          endCursor
+        }
+        nodes {
+          id
+          number
+          title
+          url
+          state
+          updatedAt
+          author {
+            login
+            avatarUrl
+          }
+        }
+      }
+    }
+  }
+`
+
+export const REPO_PULL_REQUESTS_QUERY = /* GraphQL */ `
+  query RepoPullRequests($owner: String!, $name: String!, $cursor: String) {
+    repository(owner: $owner, name: $name) {
+      pullRequests(first: 20, after: $cursor, orderBy: { field: UPDATED_AT, direction: DESC }) {
+        totalCount
+        pageInfo {
+          hasNextPage
+          endCursor
+        }
+        nodes {
+          id
+          number
+          title
+          url
+          state
+          updatedAt
+          author {
+            login
+            avatarUrl
+          }
+        }
+      }
+    }
+  }
+`
+
+// Deliberately no `orderBy` — same reasoning as ORG_PROJECTS_QUERY.
+export const REPO_PROJECTS_QUERY = /* GraphQL */ `
+  query RepoProjects($owner: String!, $name: String!, $cursor: String) {
+    repository(owner: $owner, name: $name) {
+      projectsV2(first: 20, after: $cursor) {
+        totalCount
+        pageInfo {
+          hasNextPage
+          endCursor
+        }
+        nodes {
+          id
+          title
+          number
+          url
+          shortDescription
+          closed
+        }
+      }
+    }
+  }
+`
+
 // Powers the deployment drift check: latest releases (if the repo cuts them) and
 // latest commits on the default branch (for repos that just push to main).
 export const REPO_DEPLOYMENT_INFO_QUERY = /* GraphQL */ `

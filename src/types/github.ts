@@ -72,3 +72,13 @@ export interface OrgMember {
   avatarUrl: string
   url: string
 }
+
+export interface RepoPullRequest {
+  id: string
+  number: number
+  title: string
+  url: string
+  state: 'open' | 'closed' | 'merged'
+  updatedAt: string
+  author: { login: string; avatarUrl: string } | null
+}

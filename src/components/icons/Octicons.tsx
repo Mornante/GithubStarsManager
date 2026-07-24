@@ -169,3 +169,27 @@ export function OcticonIssueClosed({ className }: IconProps) {
     </svg>
   )
 }
+
+// Same glyph is reused for open/merged/closed pull requests (matching
+// GitHub's own convention) — only the caller's text color changes per state.
+export function OcticonPullRequest({ className }: IconProps) {
+  return (
+    <svg
+      className={className}
+      viewBox="0 0 16 16"
+      width="16"
+      height="16"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.5"
+      aria-hidden="true"
+    >
+      <circle cx="3.75" cy="3.25" r="1.5" />
+      <circle cx="3.75" cy="12.75" r="1.5" />
+      <circle cx="12.25" cy="12.75" r="1.5" />
+      <path d="M3.75 4.75v6.5" strokeLinecap="round" />
+      <path d="M12.25 11.25V6a2.25 2.25 0 0 0-2.25-2.25h-2.5" strokeLinecap="round" />
+      <path d="M7.5 2.25 9.5 3.75 7.5 5.25" strokeLinecap="round" strokeLinejoin="round" />
+    </svg>
+  )
+}

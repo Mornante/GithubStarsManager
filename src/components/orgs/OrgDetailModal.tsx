@@ -7,26 +7,13 @@ import { OcticonLinkExternal, OcticonPeople, OcticonRepo, OcticonStar } from '..
 import ReadmePreview from '../repos/ReadmePreview'
 import RepoDetailModal from '../repos/RepoDetailModal'
 import Modal from '../shared/Modal'
+import TabButton from '../shared/TabButton'
 import OrgActionsMenu from './OrgActionsMenu'
 import OrgRepositoriesTab from './OrgRepositoriesTab'
 import OrgProjectsTab from './OrgProjectsTab'
 import OrgPeopleTab from './OrgPeopleTab'
 
 type Tab = 'overview' | 'repositories' | 'projects' | 'people'
-
-function TabButton({ label, active, onClick }: { label: string; active: boolean; onClick: () => void }) {
-  return (
-    <button
-      type="button"
-      onClick={onClick}
-      className={`px-3 py-1.5 text-sm font-medium rounded-t-md ${
-        active ? 'bg-canvas-subtle border border-b-0 border-border-default' : 'text-fg-muted'
-      }`}
-    >
-      {label}
-    </button>
-  )
-}
 
 export default function OrgDetailModal({
   org,
