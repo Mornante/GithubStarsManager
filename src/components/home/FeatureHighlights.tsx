@@ -1,5 +1,11 @@
 import { Link } from 'react-router-dom'
-import { OcticonNote, OcticonOrganization, OcticonRocket, OcticonSearch } from '../icons/Octicons'
+import {
+  OcticonChevronDown,
+  OcticonNote,
+  OcticonOrganization,
+  OcticonRocket,
+  OcticonSearch,
+} from '../icons/Octicons'
 
 const FEATURES = [
   {
@@ -38,23 +44,24 @@ const FEATURES = [
 export default function FeatureHighlights() {
   return (
     <section>
-      <h2 className="text-lg font-semibold mb-1">What's new</h2>
-      <p className="text-sm text-fg-muted mb-6">
-        A few tools to help you get more out of the repos you star.
-      </p>
+      <h2 className="text-lg font-display font-semibold mb-1">Your toolkit</h2>
+      <p className="text-sm text-fg-muted mb-6">Search, follow, track, and annotate — all in one place.</p>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
         {FEATURES.map((feature) => (
           <Link
             key={feature.to}
             to={feature.to}
-            className="border border-border-default rounded-md bg-canvas-subtle hover:border-accent-fg transition-colors p-4 flex flex-col gap-2"
+            className="group border border-border-default rounded-xl bg-canvas-subtle hover:border-accent-fg hover:shadow-md hover:-translate-y-0.5 transition-all p-4 flex flex-col gap-2"
           >
-            <span
-              className={`w-9 h-9 rounded-full flex items-center justify-center text-white shrink-0 ${feature.colorClass}`}
-            >
-              <feature.icon className="w-4 h-4" />
-            </span>
+            <div className="flex items-center justify-between">
+              <span
+                className={`w-11 h-11 rounded-xl flex items-center justify-center text-white shrink-0 ${feature.colorClass}`}
+              >
+                <feature.icon className="w-5 h-5" />
+              </span>
+              <OcticonChevronDown className="-rotate-90 text-fg-muted opacity-0 group-hover:opacity-100 transition-opacity" />
+            </div>
             <span className="text-sm font-medium">{feature.label}</span>
             <p className="text-xs text-fg-muted">{feature.description}</p>
           </Link>
