@@ -4,17 +4,28 @@ import { useInfiniteScrollSentinel } from '../../hooks/useInfiniteScrollSentinel
 import type { OrgProject } from '../../types/github'
 import Loader from '../shared/Loader'
 
-export default function RepoProjectsTab({ token, owner, name }: { token: string; owner: string; name: string }) {
+export default function RepoProjectsTab({
+  token,
+  owner,
+  name,
+}: {
+  token: string
+  owner: string
+  name: string
+}) {
   const {
     items: projects,
     status,
     error,
     hasMore,
     loadMore,
-  } = usePaginatedFetch<OrgProject>(async (cursor) => {
-    const result = await fetchRepoProjects(token, owner, name, cursor)
-    return { items: result.projects, hasNextPage: result.hasNextPage, endCursor: result.endCursor }
-  }, [token, owner, name])
+  } = usePaginatedFetch<OrgProject>(
+    async (cursor) => {
+      const result = await fetchRepoProjects(token, owner, name, cursor)
+      return { items: result.projects, hasNextPage: result.hasNextPage, endCursor: result.endCursor }
+    },
+    [token, owner, name],
+  )
 
   const sentinelRef = useInfiniteScrollSentinel(loadMore, hasMore)
 

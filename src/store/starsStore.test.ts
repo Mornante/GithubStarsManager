@@ -61,7 +61,9 @@ describe('addToList', () => {
   it('optimistically adds the repo to the list, then persists it', async () => {
     const repoA = repo({ id: 'r1', name: 'alpha' })
     const listX = list({ id: 'l1', name: 'Cool Stuff' })
-    useStarsStore.setState({ dataByUser: { [USER_ID]: { repos: [repoA], lists: [listX], lastSyncedAt: null } } })
+    useStarsStore.setState({
+      dataByUser: { [USER_ID]: { repos: [repoA], lists: [listX], lastSyncedAt: null } },
+    })
     vi.mocked(updateRepoListMembership).mockResolvedValue(undefined)
 
     await useStarsStore.getState().addToList(USER_ID, TOKEN, 'r1', 'l1')
@@ -75,7 +77,9 @@ describe('addToList', () => {
   it('rolls back the optimistic update when the API call fails', async () => {
     const repoA = repo({ id: 'r1', name: 'alpha' })
     const listX = list({ id: 'l1', name: 'Cool Stuff' })
-    useStarsStore.setState({ dataByUser: { [USER_ID]: { repos: [repoA], lists: [listX], lastSyncedAt: null } } })
+    useStarsStore.setState({
+      dataByUser: { [USER_ID]: { repos: [repoA], lists: [listX], lastSyncedAt: null } },
+    })
     vi.mocked(updateRepoListMembership).mockRejectedValue(new Error('network down'))
 
     await useStarsStore.getState().addToList(USER_ID, TOKEN, 'r1', 'l1')
@@ -89,7 +93,9 @@ describe('addToList', () => {
   it('is a no-op when the repo is already a member of the list', async () => {
     const repoA = repo({ id: 'r1', name: 'alpha', listIds: ['l1'] })
     const listX = list({ id: 'l1', name: 'Cool Stuff', repoIds: ['r1'] })
-    useStarsStore.setState({ dataByUser: { [USER_ID]: { repos: [repoA], lists: [listX], lastSyncedAt: null } } })
+    useStarsStore.setState({
+      dataByUser: { [USER_ID]: { repos: [repoA], lists: [listX], lastSyncedAt: null } },
+    })
 
     await useStarsStore.getState().addToList(USER_ID, TOKEN, 'r1', 'l1')
 
@@ -101,7 +107,9 @@ describe('unstarRepo', () => {
   it('optimistically removes the repo everywhere, then persists it', async () => {
     const repoA = repo({ id: 'r1', name: 'alpha', listIds: ['l1'] })
     const listX = list({ id: 'l1', name: 'Cool Stuff', repoIds: ['r1'] })
-    useStarsStore.setState({ dataByUser: { [USER_ID]: { repos: [repoA], lists: [listX], lastSyncedAt: null } } })
+    useStarsStore.setState({
+      dataByUser: { [USER_ID]: { repos: [repoA], lists: [listX], lastSyncedAt: null } },
+    })
     vi.mocked(unstarRepoApi).mockResolvedValue(undefined)
 
     await useStarsStore.getState().unstarRepo(USER_ID, TOKEN, 'r1', 'acme', 'alpha')
@@ -114,7 +122,9 @@ describe('unstarRepo', () => {
   it('restores the repo when the API call fails', async () => {
     const repoA = repo({ id: 'r1', name: 'alpha', listIds: ['l1'] })
     const listX = list({ id: 'l1', name: 'Cool Stuff', repoIds: ['r1'] })
-    useStarsStore.setState({ dataByUser: { [USER_ID]: { repos: [repoA], lists: [listX], lastSyncedAt: null } } })
+    useStarsStore.setState({
+      dataByUser: { [USER_ID]: { repos: [repoA], lists: [listX], lastSyncedAt: null } },
+    })
     vi.mocked(unstarRepoApi).mockRejectedValue(new Error('403'))
 
     await useStarsStore.getState().unstarRepo(USER_ID, TOKEN, 'r1', 'acme', 'alpha')

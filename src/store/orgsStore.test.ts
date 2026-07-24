@@ -58,7 +58,9 @@ describe('discoverFollowedAmong', () => {
 
     await useOrgsStore.getState().discoverFollowedAmong(USER_ID, TOKEN, [orgA, orgB])
 
-    expect(useOrgsStore.getState().followedByUser[USER_ID]).toEqual({ o1: { ...orgA, viewerIsFollowing: true } })
+    expect(useOrgsStore.getState().followedByUser[USER_ID]).toEqual({
+      o1: { ...orgA, viewerIsFollowing: true },
+    })
     expect(useOrgsStore.getState().results.find((o) => o.id === 'o1')?.viewerIsFollowing).toBe(true)
     expect(useOrgsStore.getState().results.find((o) => o.id === 'o2')?.viewerIsFollowing).toBe(false)
   })
@@ -141,14 +143,20 @@ describe('enrichOrgProfiles', () => {
 describe('search', () => {
   it('kicks off background discovery and profile enrichment for the fetched results', async () => {
     const orgA = org({ id: 'o1', login: 'org-a' })
-    vi.mocked(searchOrganizations).mockResolvedValue({ organizations: [orgA], hasNextPage: false, endCursor: null })
+    vi.mocked(searchOrganizations).mockResolvedValue({
+      organizations: [orgA],
+      hasNextPage: false,
+      endCursor: null,
+    })
     vi.mocked(fetchOrgViewerIsFollowing).mockResolvedValue(true)
     vi.mocked(getOrgDetails).mockResolvedValue({ ...orgA, followerCount: 7 })
 
     await useOrgsStore.getState().search(USER_ID, TOKEN, '')
 
     await vi.waitFor(() => {
-      expect(useOrgsStore.getState().followedByUser[USER_ID]).toEqual({ o1: { ...orgA, viewerIsFollowing: true } })
+      expect(useOrgsStore.getState().followedByUser[USER_ID]).toEqual({
+        o1: { ...orgA, viewerIsFollowing: true },
+      })
       expect(useOrgsStore.getState().results.find((o) => o.id === 'o1')?.followerCount).toBe(7)
     })
   })

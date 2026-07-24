@@ -97,7 +97,11 @@ export default function TrendingSection({
           {status === 'loadingMore' ? (
             <Loader label="Loading more…" size="sm" />
           ) : (
-            <button type="button" onClick={loadMore} className="text-fg-muted hover:text-fg-default underline">
+            <button
+              type="button"
+              onClick={loadMore}
+              className="text-fg-muted hover:text-fg-default underline"
+            >
               Load more
             </button>
           )}

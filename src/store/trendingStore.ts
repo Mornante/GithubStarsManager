@@ -77,7 +77,10 @@ export const useTrendingStore = create<TrendingState>()((set, get) => ({
       })
     } catch (err) {
       if (requestId !== latestFetchRequestId) return
-      set({ status: 'error', error: err instanceof Error ? err.message : 'Failed to load more trending repos' })
+      set({
+        status: 'error',
+        error: err instanceof Error ? err.message : 'Failed to load more trending repos',
+      })
     }
   },
 }))

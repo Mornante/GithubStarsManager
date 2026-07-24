@@ -136,7 +136,11 @@ export default function RepoDetailModal({
           <div className="flex gap-1 px-4 pt-3 border-b border-border-default">
             <TabButton label="Overview" active={tab === 'overview'} onClick={() => setTab('overview')} />
             <TabButton label="Issues" active={tab === 'issues'} onClick={() => setTab('issues')} />
-            <TabButton label="Pull requests" active={tab === 'pullRequests'} onClick={() => setTab('pullRequests')} />
+            <TabButton
+              label="Pull requests"
+              active={tab === 'pullRequests'}
+              onClick={() => setTab('pullRequests')}
+            />
             <TabButton label="Projects" active={tab === 'projects'} onClick={() => setTab('projects')} />
           </div>
 
@@ -153,17 +157,25 @@ export default function RepoDetailModal({
             {tab === 'pullRequests' && account && (
               <RepoPullRequestsTab token={account.token} owner={owner} name={name} />
             )}
-            {tab === 'projects' && account && <RepoProjectsTab token={account.token} owner={owner} name={name} />}
+            {tab === 'projects' && account && (
+              <RepoProjectsTab token={account.token} owner={owner} name={name} />
+            )}
           </div>
         </Modal>
       )}
 
-      {activeSubModal === 'tag' && repo && <TagStatusModal repo={repo} onClose={() => setActiveSubModal(null)} />}
+      {activeSubModal === 'tag' && repo && (
+        <TagStatusModal repo={repo} onClose={() => setActiveSubModal(null)} />
+      )}
       {activeSubModal === 'category' && repo && (
         <CategoryListModal repo={repo} lists={lists} onClose={() => setActiveSubModal(null)} />
       )}
-      {activeSubModal === 'deploy' && repo && <DeploymentModal repo={repo} onClose={() => setActiveSubModal(null)} />}
-      {activeSubModal === 'notes' && repo && <NoteModal repo={repo} onClose={() => setActiveSubModal(null)} />}
+      {activeSubModal === 'deploy' && repo && (
+        <DeploymentModal repo={repo} onClose={() => setActiveSubModal(null)} />
+      )}
+      {activeSubModal === 'notes' && repo && (
+        <NoteModal repo={repo} onClose={() => setActiveSubModal(null)} />
+      )}
 
       {confirmingUnstar && repo && (
         <ConfirmDialog

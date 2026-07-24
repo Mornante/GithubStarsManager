@@ -60,7 +60,11 @@ function mapIssue(item: IssueSearchItem): Issue {
 // "Issues I have" = involves:@me (author, assignee, mentioned, or commenter) —
 // GitHub-wide, not scoped to starred repos, since the Search API has no clean
 // way to filter by an arbitrary large list of repos.
-export async function searchMyIssues(token: string, searchText: string, page = 1): Promise<SearchIssuesResult> {
+export async function searchMyIssues(
+  token: string,
+  searchText: string,
+  page = 1,
+): Promise<SearchIssuesResult> {
   const qParts = ['is:issue', 'involves:@me']
   if (searchText.trim()) qParts.push(searchText.trim())
   const query = encodeURIComponent(qParts.join(' '))

@@ -94,7 +94,11 @@ export async function fetchRepoPullRequests(
   name: string,
   cursor: string | null = null,
 ): Promise<RepoPullRequestsResult> {
-  const data = await githubGraphql<RepoPullRequestsResponse>(token, REPO_PULL_REQUESTS_QUERY, { owner, name, cursor })
+  const data = await githubGraphql<RepoPullRequestsResponse>(token, REPO_PULL_REQUESTS_QUERY, {
+    owner,
+    name,
+    cursor,
+  })
   const conn = data.repository?.pullRequests
   return {
     pullRequests: (conn?.nodes ?? []).map((node) => ({

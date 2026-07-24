@@ -34,7 +34,9 @@ export default function HomePage() {
           />
         </div>
         <div>
-          <p className="text-sm font-medium text-accent-fg mb-1">Welcome back{firstName ? `, ${firstName}` : ''}</p>
+          <p className="text-sm font-medium text-accent-fg mb-1">
+            Welcome back{firstName ? `, ${firstName}` : ''}
+          </p>
           <h1 className="text-3xl md:text-4xl font-display font-bold tracking-tight bg-gradient-to-r from-accent-fg to-done-fg bg-clip-text text-transparent">
             GitHub Stars Manager
           </h1>

@@ -7,7 +7,15 @@ import type { Issue } from '../../api/issuesApi'
 import IssueRow from '../issues/IssueRow'
 import Loader from '../shared/Loader'
 
-export default function RepoIssuesTab({ token, owner, name }: { token: string; owner: string; name: string }) {
+export default function RepoIssuesTab({
+  token,
+  owner,
+  name,
+}: {
+  token: string
+  owner: string
+  name: string
+}) {
   const account = useAuthStore((s) => s.currentAccount())
   const markViewed = useIssueViewsStore((s) => s.markViewed)
   const viewsByUser = useIssueViewsStore((s) => s.byUser)
@@ -18,10 +26,13 @@ export default function RepoIssuesTab({ token, owner, name }: { token: string; o
     error,
     hasMore,
     loadMore,
-  } = usePaginatedFetch<Issue>(async (cursor) => {
-    const result = await fetchRepoIssues(token, owner, name, cursor)
-    return { items: result.issues, hasNextPage: result.hasNextPage, endCursor: result.endCursor }
-  }, [token, owner, name])
+  } = usePaginatedFetch<Issue>(
+    async (cursor) => {
+      const result = await fetchRepoIssues(token, owner, name, cursor)
+      return { items: result.issues, hasNextPage: result.hasNextPage, endCursor: result.endCursor }
+    },
+    [token, owner, name],
+  )
 
   const sentinelRef = useInfiniteScrollSentinel(loadMore, hasMore)
 
@@ -46,7 +57,11 @@ export default function RepoIssuesTab({ token, owner, name }: { token: string; o
           <IssueRow
             key={issue.id}
             issue={issue}
-            hasChanges={account ? issueHasChangedSinceView(viewsByUser, account.user.id, issue.id, issue.updatedAt) : false}
+            hasChanges={
+              account
+                ? issueHasChangedSinceView(viewsByUser, account.user.id, issue.id, issue.updatedAt)
+                : false
+            }
             onOpen={() => account && markViewed(account.user.id, issue.id, issue.updatedAt)}
           />
         ))}

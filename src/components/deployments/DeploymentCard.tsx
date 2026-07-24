@@ -37,11 +37,7 @@ function DeploymentCard({
         <p className="text-xs text-fg-muted">No deployment record yet — open to set one.</p>
       )}
       <div className="mt-1">
-        {loading ? (
-          <Loader label="Checking…" size="sm" />
-        ) : drift ? (
-          <DriftBadge drift={drift} />
-        ) : null}
+        {loading ? <Loader label="Checking…" size="sm" /> : drift ? <DriftBadge drift={drift} /> : null}
       </div>
     </button>
   )

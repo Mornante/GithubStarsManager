@@ -157,7 +157,11 @@ const ORG_MEMBERS_PAGE_SIZE = 30
 // github.com. REST doesn't expose a total count here, so "more pages exist"
 // is inferred the same way SEARCH_PAGE_SIZE results are elsewhere: a full
 // page suggests there may be another.
-export async function fetchOrgPublicMembers(token: string, login: string, page = 1): Promise<OrgMembersResult> {
+export async function fetchOrgPublicMembers(
+  token: string,
+  login: string,
+  page = 1,
+): Promise<OrgMembersResult> {
   const data = await githubRest<PublicMemberResponse[]>(
     token,
     `/orgs/${login}/public_members?per_page=${ORG_MEMBERS_PAGE_SIZE}&page=${page}`,

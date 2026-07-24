@@ -1,4 +1,10 @@
-import type { FilterDefinition, FilterOption, FilterPredicateCtx, FilterValue, SortOption } from '../types/filters'
+import type {
+  FilterDefinition,
+  FilterOption,
+  FilterPredicateCtx,
+  FilterValue,
+  SortOption,
+} from '../types/filters'
 import type { Repo } from '../types/github'
 import SearchFilterControl from '../components/repos/filters/SearchFilterControl'
 import MultiSelectFilterControl from '../components/repos/filters/MultiSelectFilterControl'
@@ -89,7 +95,9 @@ export const FILTER_DEFINITIONS: FilterDefinition[] = [
     control: MultiSelectFilterControl,
     defaultValue: [],
     getOptions: (repos) =>
-      uniqueOptionsFrom(repos.map((r) => r.primaryLanguage?.name).filter((name): name is string => Boolean(name))),
+      uniqueOptionsFrom(
+        repos.map((r) => r.primaryLanguage?.name).filter((name): name is string => Boolean(name)),
+      ),
     predicate: (repo, value) =>
       value.length === 0 || (repo.primaryLanguage !== null && value.includes(repo.primaryLanguage.name)),
     serialize: (value) => csvSerialize(value),
@@ -118,7 +126,9 @@ export const FILTER_DEFINITIONS: FilterDefinition[] = [
     defaultValue: [],
     getOptions: (repos) =>
       uniqueOptionsFrom(
-        repos.map((r) => r.licenseInfo?.spdxId ?? r.licenseInfo?.name).filter((name): name is string => Boolean(name)),
+        repos
+          .map((r) => r.licenseInfo?.spdxId ?? r.licenseInfo?.name)
+          .filter((name): name is string => Boolean(name)),
       ),
     predicate: (repo, value) => {
       if (value.length === 0) return true
@@ -136,7 +146,8 @@ export const FILTER_DEFINITIONS: FilterDefinition[] = [
     kind: 'select',
     control: SelectFilterControl,
     defaultValue: null,
-    getOptions: (_repos, lists) => lists.map((l) => ({ value: l.id, label: l.name, count: l.repoIds.length })),
+    getOptions: (_repos, lists) =>
+      lists.map((l) => ({ value: l.id, label: l.name, count: l.repoIds.length })),
     predicate: (repo, value) => !value || repo.listIds.includes(value),
     serialize: (value) => (value ? value : null),
     deserialize: (raw) => raw,

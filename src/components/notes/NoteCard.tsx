@@ -3,7 +3,10 @@ import type { Repo } from '../../types/github'
 import type { NoteRecord } from '../../types/gsmState'
 
 function NoteCard({ repo, record, onOpen }: { repo: Repo; record: NoteRecord; onOpen: () => void }) {
-  const preview = record.content.split('\n').find((line) => line.trim().length > 0)?.trim()
+  const preview = record.content
+    .split('\n')
+    .find((line) => line.trim().length > 0)
+    ?.trim()
 
   return (
     <button
@@ -13,7 +16,9 @@ function NoteCard({ repo, record, onOpen }: { repo: Repo; record: NoteRecord; on
     >
       <span className="font-mono text-sm font-medium truncate block">{repo.nameWithOwner}</span>
       <p className="text-xs text-fg-muted line-clamp-2">{preview || 'Empty note'}</p>
-      <span className="text-xs text-fg-muted mt-1">Updated {new Date(record.updatedAt).toLocaleDateString()}</span>
+      <span className="text-xs text-fg-muted mt-1">
+        Updated {new Date(record.updatedAt).toLocaleDateString()}
+      </span>
     </button>
   )
 }

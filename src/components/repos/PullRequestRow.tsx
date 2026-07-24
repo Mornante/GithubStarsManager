@@ -38,7 +38,9 @@ function PullRequestRow({
         </span>
       )}
 
-      <span className="shrink-0 text-xs text-fg-muted">{new Date(pullRequest.updatedAt).toLocaleDateString()}</span>
+      <span className="shrink-0 text-xs text-fg-muted">
+        {new Date(pullRequest.updatedAt).toLocaleDateString()}
+      </span>
     </a>
   )
 }

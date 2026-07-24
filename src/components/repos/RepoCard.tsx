@@ -52,9 +52,7 @@ function RepoCard({
           <span className="text-fg-muted">{repo.owner.login}/</span>
           {repo.name}
         </span>
-        {repo.description && (
-          <p className="text-sm text-fg-muted line-clamp-2 mt-1">{repo.description}</p>
-        )}
+        {repo.description && <p className="text-sm text-fg-muted line-clamp-2 mt-1">{repo.description}</p>}
       </div>
 
       <div className={`flex flex-wrap items-center gap-4 ${view === 'grid' ? 'mt-1' : 'shrink-0'}`}>
@@ -62,9 +60,7 @@ function RepoCard({
         <span className="flex items-center gap-1 text-xs text-attention-fg font-medium">
           <OcticonStar /> {repo.stargazerCount.toLocaleString()}
         </span>
-        <span className="text-xs text-fg-muted">
-          Updated {new Date(repo.updatedAt).toLocaleDateString()}
-        </span>
+        <span className="text-xs text-fg-muted">Updated {new Date(repo.updatedAt).toLocaleDateString()}</span>
       </div>
 
       {view === 'grid' && (repo.topics.length > 0 || memberLists.length > 0 || stage || isDeployed) && (

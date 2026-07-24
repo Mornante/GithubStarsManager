@@ -87,7 +87,8 @@ export default function DeploymentModal({ repo, onClose }: { repo: Repo; onClose
 
   const drift = record && info ? computeDeploymentDrift(record, info) : null
   const hasNewerVersion = drift?.kind === 'behind' || drift?.kind === 'behind-unknown'
-  const latestVersionLabel = info?.releases[0]?.tagName ?? (info?.recentCommits[0] ? info.recentCommits[0].oid.slice(0, 7) : null)
+  const latestVersionLabel =
+    info?.releases[0]?.tagName ?? (info?.recentCommits[0] ? info.recentCommits[0].oid.slice(0, 7) : null)
   const latestSuggestion = info?.releases[0]
     ? `release (${info.releases[0].tagName})`
     : info?.recentCommits[0]
@@ -153,12 +154,16 @@ export default function DeploymentModal({ repo, onClose }: { repo: Repo; onClose
                   </p>
                 </div>
               ) : (
-                <p className="text-sm text-fg-muted">Not deployed yet — switch to Edit to track a deployment.</p>
+                <p className="text-sm text-fg-muted">
+                  Not deployed yet — switch to Edit to track a deployment.
+                </p>
               )}
 
               {hasNewerVersion && latestVersionLabel && (
                 <div className="rounded-md border border-success-fg/40 bg-success-fg/10 px-4 py-3 text-sm flex items-center justify-between gap-4">
-                  <span className="text-success-fg font-medium">New version available — {latestVersionLabel}</span>
+                  <span className="text-success-fg font-medium">
+                    New version available — {latestVersionLabel}
+                  </span>
                   <button
                     type="button"
                     onClick={handleDeployLatest}
@@ -172,7 +177,10 @@ export default function DeploymentModal({ repo, onClose }: { repo: Repo; onClose
           ) : (
             <div className="space-y-4">
               <div>
-                <label htmlFor="deployment-environment" className="block text-xs font-medium text-fg-muted mb-1">
+                <label
+                  htmlFor="deployment-environment"
+                  className="block text-xs font-medium text-fg-muted mb-1"
+                >
                   Environment
                 </label>
                 <input

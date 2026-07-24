@@ -73,7 +73,8 @@ function withoutRepoField(
   if (!existing) return repos
   const rest: RepoState = { ...existing }
   delete rest[field]
-  const hasOtherData = rest.reviewTag !== undefined || rest.deployment !== undefined || rest.note !== undefined
+  const hasOtherData =
+    rest.reviewTag !== undefined || rest.deployment !== undefined || rest.note !== undefined
   const next = { ...repos }
   if (hasOtherData) next[repoId] = rest
   else delete next[repoId]

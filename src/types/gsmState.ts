@@ -61,7 +61,8 @@ export function emptyGsmState(): GsmStateFile {
     meta: {
       app: 'GitHub Stars Manager',
       repository: REPO_URL,
-      notice: "This file is managed automatically by GitHub Stars Manager — don't edit it by hand. Visit the repository above to see what created it.",
+      notice:
+        "This file is managed automatically by GitHub Stars Manager — don't edit it by hand. Visit the repository above to see what created it.",
       updatedAt: new Date().toISOString(),
     },
     repos: {},

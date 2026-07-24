@@ -7,7 +7,15 @@ import type { RepoPullRequest } from '../../types/github'
 import PullRequestRow from './PullRequestRow'
 import Loader from '../shared/Loader'
 
-export default function RepoPullRequestsTab({ token, owner, name }: { token: string; owner: string; name: string }) {
+export default function RepoPullRequestsTab({
+  token,
+  owner,
+  name,
+}: {
+  token: string
+  owner: string
+  name: string
+}) {
   const account = useAuthStore((s) => s.currentAccount())
   const markViewed = useIssueViewsStore((s) => s.markViewed)
   const viewsByUser = useIssueViewsStore((s) => s.byUser)
@@ -18,10 +26,13 @@ export default function RepoPullRequestsTab({ token, owner, name }: { token: str
     error,
     hasMore,
     loadMore,
-  } = usePaginatedFetch<RepoPullRequest>(async (cursor) => {
-    const result = await fetchRepoPullRequests(token, owner, name, cursor)
-    return { items: result.pullRequests, hasNextPage: result.hasNextPage, endCursor: result.endCursor }
-  }, [token, owner, name])
+  } = usePaginatedFetch<RepoPullRequest>(
+    async (cursor) => {
+      const result = await fetchRepoPullRequests(token, owner, name, cursor)
+      return { items: result.pullRequests, hasNextPage: result.hasNextPage, endCursor: result.endCursor }
+    },
+    [token, owner, name],
+  )
 
   const sentinelRef = useInfiniteScrollSentinel(loadMore, hasMore)
 
@@ -46,7 +57,9 @@ export default function RepoPullRequestsTab({ token, owner, name }: { token: str
           <PullRequestRow
             key={pr.id}
             pullRequest={pr}
-            hasChanges={account ? issueHasChangedSinceView(viewsByUser, account.user.id, pr.id, pr.updatedAt) : false}
+            hasChanges={
+              account ? issueHasChangedSinceView(viewsByUser, account.user.id, pr.id, pr.updatedAt) : false
+            }
             onOpen={() => account && markViewed(account.user.id, pr.id, pr.updatedAt)}
           />
         ))}

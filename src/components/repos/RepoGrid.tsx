@@ -18,11 +18,17 @@ export default function RepoGrid({
   onOpenRepo: (nameWithOwner: string) => void
 }) {
   if (repos.length === 0) {
-    return <p className="text-sm text-fg-muted py-8 text-center">No repositories match the current filters.</p>
+    return (
+      <p className="text-sm text-fg-muted py-8 text-center">No repositories match the current filters.</p>
+    )
   }
 
   return (
-    <div className={view === 'grid' ? 'grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3' : 'flex flex-col gap-2'}>
+    <div
+      className={
+        view === 'grid' ? 'grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3' : 'flex flex-col gap-2'
+      }
+    >
       {repos.map((repo) => (
         <RepoCard
           key={repo.id}

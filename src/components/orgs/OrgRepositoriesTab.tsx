@@ -25,10 +25,13 @@ export default function OrgRepositoriesTab({
     error,
     hasMore,
     loadMore,
-  } = usePaginatedFetch<Repo>(async (cursor) => {
-    const result = await fetchOrgRepositories(token, login, cursor)
-    return { items: result.repos, hasNextPage: result.hasNextPage, endCursor: result.endCursor }
-  }, [token, login])
+  } = usePaginatedFetch<Repo>(
+    async (cursor) => {
+      const result = await fetchOrgRepositories(token, login, cursor)
+      return { items: result.repos, hasNextPage: result.hasNextPage, endCursor: result.endCursor }
+    },
+    [token, login],
+  )
 
   const sentinelRef = useInfiniteScrollSentinel(loadMore, hasMore)
 
@@ -56,7 +59,11 @@ export default function OrgRepositoriesTab({
           {status === 'loadingMore' ? (
             <Loader label="Loading more…" size="sm" />
           ) : hasMore ? (
-            <button type="button" onClick={loadMore} className="text-fg-muted hover:text-fg-default underline">
+            <button
+              type="button"
+              onClick={loadMore}
+              className="text-fg-muted hover:text-fg-default underline"
+            >
               Load more
             </button>
           ) : (

@@ -2,7 +2,11 @@ import type { FilterControlProps } from '../../../types/filters'
 import { useDismissableOpen } from '../../../hooks/useDismissableOpen'
 import { OcticonChevronDown } from '../../icons/Octicons'
 
-export default function MultiSelectFilterControl({ value, options = [], onChange }: FilterControlProps<string[]>) {
+export default function MultiSelectFilterControl({
+  value,
+  options = [],
+  onChange,
+}: FilterControlProps<string[]>) {
   const { open, setOpen, ref } = useDismissableOpen<HTMLDivElement>()
   const selected = value ?? []
 

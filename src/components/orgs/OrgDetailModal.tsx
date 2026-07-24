@@ -130,7 +130,11 @@ export default function OrgDetailModal({
 
           <div className="flex gap-1 px-4 pt-3 border-b border-border-default">
             <TabButton label="Overview" active={tab === 'overview'} onClick={() => setTab('overview')} />
-            <TabButton label="Repositories" active={tab === 'repositories'} onClick={() => setTab('repositories')} />
+            <TabButton
+              label="Repositories"
+              active={tab === 'repositories'}
+              onClick={() => setTab('repositories')}
+            />
             <TabButton label="Projects" active={tab === 'projects'} onClick={() => setTab('projects')} />
             <TabButton label="People" active={tab === 'people'} onClick={() => setTab('people')} />
           </div>

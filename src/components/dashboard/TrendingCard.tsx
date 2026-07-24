@@ -21,7 +21,9 @@ function TrendingCard({ repo, onOpen }: { repo: SearchRepoResult; onOpen: () => 
         <span className="flex items-center gap-1 text-xs text-attention-fg font-medium">
           <OcticonStar /> {repo.stargazers_count.toLocaleString()}
         </span>
-        <span className="text-xs text-fg-muted">Updated {new Date(repo.updated_at).toLocaleDateString()}</span>
+        <span className="text-xs text-fg-muted">
+          Updated {new Date(repo.updated_at).toLocaleDateString()}
+        </span>
       </div>
     </button>
   )

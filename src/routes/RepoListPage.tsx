@@ -80,7 +80,9 @@ export default function RepoListPage() {
         </div>
 
         <div>
-          <div className="text-xs font-semibold uppercase tracking-wide text-fg-muted mb-2">Quick filters</div>
+          <div className="text-xs font-semibold uppercase tracking-wide text-fg-muted mb-2">
+            Quick filters
+          </div>
           <FilterCards
             repos={repos}
             lists={lists}

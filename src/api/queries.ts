@@ -105,7 +105,12 @@ export const ORG_VIEWER_FOLLOWING_QUERY = /* GraphQL */ `
 export const ORG_REPOSITORIES_QUERY = /* GraphQL */ `
   query OrgRepositories($login: String!, $cursor: String) {
     organization(login: $login) {
-      repositories(first: 30, after: $cursor, privacy: PUBLIC, orderBy: { field: STARGAZERS, direction: DESC }) {
+      repositories(
+        first: 30
+        after: $cursor
+        privacy: PUBLIC
+        orderBy: { field: STARGAZERS, direction: DESC }
+      ) {
         totalCount
         pageInfo {
           hasNextPage

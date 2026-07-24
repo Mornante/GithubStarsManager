@@ -67,7 +67,15 @@ describe('fetchRepoPullRequests', () => {
           totalCount: 2,
           pageInfo: { hasNextPage: true, endCursor: 'cursor2' },
           nodes: [
-            { id: 'p1', number: 1, title: 'Add feature', url: 'u1', state: 'MERGED', updatedAt: 't1', author: null },
+            {
+              id: 'p1',
+              number: 1,
+              title: 'Add feature',
+              url: 'u1',
+              state: 'MERGED',
+              updatedAt: 't1',
+              author: null,
+            },
             { id: 'p2', number: 2, title: 'WIP', url: 'u2', state: 'OPEN', updatedAt: 't2', author: null },
           ],
         },
@@ -97,14 +105,18 @@ describe('fetchRepoProjects', () => {
         projectsV2: {
           totalCount: 1,
           pageInfo: { hasNextPage: false, endCursor: null },
-          nodes: [{ id: 'proj1', title: 'Roadmap', number: 1, url: 'u', shortDescription: null, closed: false }],
+          nodes: [
+            { id: 'proj1', title: 'Roadmap', number: 1, url: 'u', shortDescription: null, closed: false },
+          ],
         },
       },
     })
 
     const result = await fetchRepoProjects(TOKEN, 'octo', 'repo')
 
-    expect(result.projects).toEqual([{ id: 'proj1', title: 'Roadmap', number: 1, url: 'u', shortDescription: null, closed: false }])
+    expect(result.projects).toEqual([
+      { id: 'proj1', title: 'Roadmap', number: 1, url: 'u', shortDescription: null, closed: false },
+    ])
   })
 
   it('falls back to empty/false when repository is null', async () => {

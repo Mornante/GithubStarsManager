@@ -28,7 +28,15 @@ describe('findOrCreateGsmStateGist', () => {
 
     const fetchMock = vi.mocked(fetch)
     fetchMock
-      .mockResolvedValueOnce(jsonResponse([{ id: GIST_ID, description: 'GSM:STATE', files: { 'gsm-state.json': { filename: 'gsm-state.json' } } }]))
+      .mockResolvedValueOnce(
+        jsonResponse([
+          {
+            id: GIST_ID,
+            description: 'GSM:STATE',
+            files: { 'gsm-state.json': { filename: 'gsm-state.json' } },
+          },
+        ]),
+      )
       .mockResolvedValueOnce(
         jsonResponse({
           id: GIST_ID,
@@ -48,10 +56,16 @@ describe('findOrCreateGsmStateGist', () => {
     // live file and a snapshot of the exact pre-migration content.
     const patchCall = fetchMock.mock.calls[2]
     expect(patchCall[0]).toBe(`https://api.github.com/gists/${GIST_ID}`)
-    const patchBody = JSON.parse((patchCall[1] as RequestInit).body as string) as { files: Record<string, { content: string }> }
+    const patchBody = JSON.parse((patchCall[1] as RequestInit).body as string) as {
+      files: Record<string, { content: string }>
+    }
     expect(Object.keys(patchBody.files).sort()).toEqual(['gsm-state.json', 'gsm-state.snapshot-v0.0.0.json'])
-    expect(JSON.parse(patchBody.files['gsm-state.snapshot-v0.0.0.json'].content)).toEqual(JSON.parse(legacyContent))
-    expect(JSON.parse(patchBody.files['gsm-state.json'].content).repos).toEqual({ r1: { reviewTag: 'REVIEW_REQUIRED' } })
+    expect(JSON.parse(patchBody.files['gsm-state.snapshot-v0.0.0.json'].content)).toEqual(
+      JSON.parse(legacyContent),
+    )
+    expect(JSON.parse(patchBody.files['gsm-state.json'].content).repos).toEqual({
+      r1: { reviewTag: 'REVIEW_REQUIRED' },
+    })
   })
 
   it('does not touch the gist when it is already at the current schema version', async () => {
@@ -63,7 +77,15 @@ describe('findOrCreateGsmStateGist', () => {
 
     const fetchMock = vi.mocked(fetch)
     fetchMock
-      .mockResolvedValueOnce(jsonResponse([{ id: GIST_ID, description: 'GSM:STATE', files: { 'gsm-state.json': { filename: 'gsm-state.json' } } }]))
+      .mockResolvedValueOnce(
+        jsonResponse([
+          {
+            id: GIST_ID,
+            description: 'GSM:STATE',
+            files: { 'gsm-state.json': { filename: 'gsm-state.json' } },
+          },
+        ]),
+      )
       .mockResolvedValueOnce(
         jsonResponse({
           id: GIST_ID,
@@ -84,14 +106,25 @@ describe('findOrCreateGsmStateGist', () => {
 
     const fetchMock = vi.mocked(fetch)
     fetchMock
-      .mockResolvedValueOnce(jsonResponse([{ id: GIST_ID, description: 'GSM:STATE', files: { 'gsm-state.json': { filename: 'gsm-state.json' } } }]))
+      .mockResolvedValueOnce(
+        jsonResponse([
+          {
+            id: GIST_ID,
+            description: 'GSM:STATE',
+            files: { 'gsm-state.json': { filename: 'gsm-state.json' } },
+          },
+        ]),
+      )
       .mockResolvedValueOnce(
         jsonResponse({
           id: GIST_ID,
           description: 'GSM:STATE',
           files: {
             'gsm-state.json': { filename: 'gsm-state.json', content: legacyContent },
-            'gsm-state.snapshot-v0.0.0.json': { filename: 'gsm-state.snapshot-v0.0.0.json', content: '{"already":"here"}' },
+            'gsm-state.snapshot-v0.0.0.json': {
+              filename: 'gsm-state.snapshot-v0.0.0.json',
+              content: '{"already":"here"}',
+            },
           },
         }),
       )
@@ -100,7 +133,9 @@ describe('findOrCreateGsmStateGist', () => {
     await findOrCreateGsmStateGist(TOKEN)
 
     const patchCall = fetchMock.mock.calls[2]
-    const patchBody = JSON.parse((patchCall[1] as RequestInit).body as string) as { files: Record<string, unknown> }
+    const patchBody = JSON.parse((patchCall[1] as RequestInit).body as string) as {
+      files: Record<string, unknown>
+    }
     expect(Object.keys(patchBody.files)).toEqual(['gsm-state.json'])
   })
 })

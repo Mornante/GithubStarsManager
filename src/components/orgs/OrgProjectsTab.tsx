@@ -11,10 +11,13 @@ export default function OrgProjectsTab({ token, login }: { token: string; login:
     error,
     hasMore,
     loadMore,
-  } = usePaginatedFetch<OrgProject>(async (cursor) => {
-    const result = await fetchOrgProjects(token, login, cursor)
-    return { items: result.projects, hasNextPage: result.hasNextPage, endCursor: result.endCursor }
-  }, [token, login])
+  } = usePaginatedFetch<OrgProject>(
+    async (cursor) => {
+      const result = await fetchOrgProjects(token, login, cursor)
+      return { items: result.projects, hasNextPage: result.hasNextPage, endCursor: result.endCursor }
+    },
+    [token, login],
+  )
 
   const sentinelRef = useInfiniteScrollSentinel(loadMore, hasMore)
 

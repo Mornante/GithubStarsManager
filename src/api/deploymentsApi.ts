@@ -35,7 +35,10 @@ export async function fetchRepoDeploymentInfo(
   owner: string,
   name: string,
 ): Promise<RepoDeploymentInfo> {
-  const data = await githubGraphql<RepoDeploymentInfoResponse>(token, REPO_DEPLOYMENT_INFO_QUERY, { owner, name })
+  const data = await githubGraphql<RepoDeploymentInfoResponse>(token, REPO_DEPLOYMENT_INFO_QUERY, {
+    owner,
+    name,
+  })
   const repo = data.repository
   return {
     releasesTotalCount: repo?.releases.totalCount ?? 0,

@@ -22,10 +22,13 @@ const NAV_ITEMS = [
   { to: '/issues', end: false, label: 'Issues', icon: OcticonIssueOpened },
 ]
 
-const navLinkClass = (collapsed: boolean) =>
+const navLinkClass =
+  (collapsed: boolean) =>
   ({ isActive }: { isActive: boolean }) =>
     `flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium ${collapsed ? 'justify-center' : ''} ${
-      isActive ? 'bg-accent-fg/10 text-accent-fg font-semibold' : 'text-fg-muted hover:text-fg-default hover:bg-canvas-subtle'
+      isActive
+        ? 'bg-accent-fg/10 text-accent-fg font-semibold'
+        : 'text-fg-muted hover:text-fg-default hover:bg-canvas-subtle'
     }`
 
 export default function Sidebar() {
@@ -36,7 +39,9 @@ export default function Sidebar() {
       className="sticky top-0 h-screen border-r border-border-default bg-canvas flex flex-col transition-[width] overflow-hidden"
       style={{ flex: `0 0 ${collapsed ? '4rem' : '15rem'}`, width: collapsed ? '4rem' : '15rem' }}
     >
-      <div className={`h-14 flex items-center border-b border-border-default ${collapsed ? 'justify-center px-2' : 'gap-2 px-4'}`}>
+      <div
+        className={`h-14 flex items-center border-b border-border-default ${collapsed ? 'justify-center px-2' : 'gap-2 px-4'}`}
+      >
         <img
           src="https://octodex.github.com/images/original.png"
           alt="GitHub Stars Manager"

@@ -48,14 +48,19 @@ describe('setReviewTag', () => {
     expect(writeGsmState).toHaveBeenCalledWith(
       TOKEN,
       'g1',
-      expect.objectContaining({ repos: { r1: { nameWithOwner: 'octo/hello-world', reviewTag: 'REVIEW_REQUIRED' } } }),
+      expect.objectContaining({
+        repos: { r1: { nameWithOwner: 'octo/hello-world', reviewTag: 'REVIEW_REQUIRED' } },
+      }),
     )
   })
 
   it('drops the repo entry entirely when untagging leaves no other data', async () => {
     const before = {
       gistId: 'g1',
-      state: { ...emptyGsmState(), repos: { r1: { nameWithOwner: 'octo/hello-world', reviewTag: 'IN_REVIEW' as const } } },
+      state: {
+        ...emptyGsmState(),
+        repos: { r1: { nameWithOwner: 'octo/hello-world', reviewTag: 'IN_REVIEW' as const } },
+      },
     }
     useGsmStateStore.setState({ byUser: { [USER_ID]: before } })
     vi.mocked(writeGsmState).mockResolvedValue(undefined)
@@ -93,7 +98,10 @@ describe('setReviewTag', () => {
   it('rolls back to the previous state when the write fails', async () => {
     const before = {
       gistId: 'g1',
-      state: { ...emptyGsmState(), repos: { r1: { nameWithOwner: 'octo/hello-world', reviewTag: 'IN_REVIEW' as const } } },
+      state: {
+        ...emptyGsmState(),
+        repos: { r1: { nameWithOwner: 'octo/hello-world', reviewTag: 'IN_REVIEW' as const } },
+      },
     }
     useGsmStateStore.setState({ byUser: { [USER_ID]: before } })
     vi.mocked(writeGsmState).mockRejectedValue(new Error('gist write failed'))
@@ -114,7 +122,12 @@ describe('setDeployment', () => {
   it('optimistically records the deployment, then persists it', async () => {
     useGsmStateStore.setState({ byUser: { [USER_ID]: { gistId: 'g1', state: emptyGsmState() } } })
     vi.mocked(writeGsmState).mockResolvedValue(undefined)
-    const record = { environment: 'production', deployedRef: 'v1.0.0', deployedRefType: 'release' as const, deployedAt: '2024-01-01T00:00:00Z' }
+    const record = {
+      environment: 'production',
+      deployedRef: 'v1.0.0',
+      deployedRefType: 'release' as const,
+      deployedAt: '2024-01-01T00:00:00Z',
+    }
 
     await useGsmStateStore.getState().setDeployment(USER_ID, TOKEN, REPO, record)
 
@@ -169,7 +182,10 @@ describe('persisted state merge (backfill)', () => {
     const currentState = { byUser: {}, status: 'idle', error: null }
     const persisted = {
       byUser: {
-        [USER_ID]: { gistId: 'g1', state: { schemaVersion: '1.0.0', repos: { r1: { reviewTag: 'REVIEW_REQUIRED' } } } },
+        [USER_ID]: {
+          gistId: 'g1',
+          state: { schemaVersion: '1.0.0', repos: { r1: { reviewTag: 'REVIEW_REQUIRED' } } },
+        },
       },
     }
 

@@ -15,7 +15,9 @@ export default function ActiveFilterPills({
   clearFilter: (key: string) => void
   clearAll: () => void
 }) {
-  const activeDefs = FILTER_DEFINITIONS.filter((def) => def.isActive(filterState[def.key] ?? def.defaultValue))
+  const activeDefs = FILTER_DEFINITIONS.filter((def) =>
+    def.isActive(filterState[def.key] ?? def.defaultValue),
+  )
   if (activeDefs.length === 0) return null
 
   return (

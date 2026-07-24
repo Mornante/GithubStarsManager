@@ -14,7 +14,10 @@ type Status = 'loading' | 'loadingMore' | 'idle' | 'error'
 // re-fetches — same trade-off as useAsync.ts: callers typically pass a fresh
 // closure every render, so keying off the fetcher's identity would defeat
 // the point.
-export function usePaginatedFetch<T>(fetchPage: (cursor: string | null) => Promise<PageResult<T>>, deps: unknown[]) {
+export function usePaginatedFetch<T>(
+  fetchPage: (cursor: string | null) => Promise<PageResult<T>>,
+  deps: unknown[],
+) {
   const [items, setItems] = useState<T[]>([])
   const [cursor, setCursor] = useState<string | null>(null)
   const [hasMore, setHasMore] = useState(false)

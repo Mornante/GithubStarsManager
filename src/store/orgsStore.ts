@@ -39,14 +39,21 @@ function toast(message: string) {
   useToastStore.getState().show(message)
 }
 
-function patchOrgEverywhere(results: Organization[], orgId: string, patch: Partial<Organization>): Organization[] {
+function patchOrgEverywhere(
+  results: Organization[],
+  orgId: string,
+  patch: Partial<Organization>,
+): Organization[] {
   return results.map((o) => (o.id === orgId ? { ...o, ...patch } : o))
 }
 
 // REST search can't report per-viewer follow state, so newly-fetched results
 // default to false — patch in "true" for any org already known to be followed
 // through this app before rendering them.
-function reconcileFollowState(organizations: Organization[], followed: Record<string, Organization>): Organization[] {
+function reconcileFollowState(
+  organizations: Organization[],
+  followed: Record<string, Organization>,
+): Organization[] {
   return organizations.map((org) => (followed[org.id] ? { ...org, viewerIsFollowing: true } : org))
 }
 
@@ -76,12 +83,20 @@ export const useOrgsStore = create<OrgsState>()(
           const { organizations, hasNextPage, endCursor } = await searchOrganizations(token, query)
           if (requestId !== latestSearchRequestId) return
           const followed = get().followedByUser[userId] ?? {}
-          set({ results: reconcileFollowState(organizations, followed), cursor: endCursor, hasMore: hasNextPage, status: 'idle' })
+          set({
+            results: reconcileFollowState(organizations, followed),
+            cursor: endCursor,
+            hasMore: hasNextPage,
+            status: 'idle',
+          })
           void get().discoverFollowedAmong(userId, token, organizations)
           void get().enrichOrgProfiles(userId, token, organizations)
         } catch (err) {
           if (requestId !== latestSearchRequestId) return
-          set({ status: 'error', error: err instanceof Error ? err.message : 'Failed to search organizations' })
+          set({
+            status: 'error',
+            error: err instanceof Error ? err.message : 'Failed to search organizations',
+          })
         }
       },
 
@@ -104,7 +119,10 @@ export const useOrgsStore = create<OrgsState>()(
           void get().enrichOrgProfiles(userId, token, organizations)
         } catch (err) {
           if (requestId !== latestSearchRequestId) return
-          set({ status: 'error', error: err instanceof Error ? err.message : 'Failed to load more organizations' })
+          set({
+            status: 'error',
+            error: err instanceof Error ? err.message : 'Failed to load more organizations',
+          })
         }
       },
 
@@ -115,7 +133,10 @@ export const useOrgsStore = create<OrgsState>()(
           set((state) => ({
             followedByUser: {
               ...state.followedByUser,
-              [userId]: { ...(state.followedByUser[userId] ?? {}), [org.id]: { ...org, viewerIsFollowing: true } },
+              [userId]: {
+                ...(state.followedByUser[userId] ?? {}),
+                [org.id]: { ...org, viewerIsFollowing: true },
+              },
             },
           }))
           toast(`Followed ${org.login}`)
@@ -144,7 +165,10 @@ export const useOrgsStore = create<OrgsState>()(
             results: patchOrgEverywhere(state.results, org.id, { viewerIsFollowing: true }),
             followedByUser: {
               ...state.followedByUser,
-              [userId]: { ...(state.followedByUser[userId] ?? {}), [org.id]: { ...org, viewerIsFollowing: true } },
+              [userId]: {
+                ...(state.followedByUser[userId] ?? {}),
+                [org.id]: { ...org, viewerIsFollowing: true },
+              },
             },
             error: err instanceof Error ? err.message : `Failed to unfollow ${org.login}`,
           }))
@@ -164,7 +188,10 @@ export const useOrgsStore = create<OrgsState>()(
             followedByUser: real
               ? {
                   ...state.followedByUser,
-                  [userId]: { ...(state.followedByUser[userId] ?? {}), [org.id]: { ...org, viewerIsFollowing: true } },
+                  [userId]: {
+                    ...(state.followedByUser[userId] ?? {}),
+                    [org.id]: { ...org, viewerIsFollowing: true },
+                  },
                 }
               : state.followedByUser,
           }))
@@ -186,7 +213,10 @@ export const useOrgsStore = create<OrgsState>()(
         if (unknown.length === 0) return
 
         const checks = await Promise.allSettled(
-          unknown.map(async (org) => ({ org, isFollowing: await fetchOrgViewerIsFollowing(token, org.login) })),
+          unknown.map(async (org) => ({
+            org,
+            isFollowing: await fetchOrgViewerIsFollowing(token, org.login),
+          })),
         )
         const newlyFollowed = checks
           .filter(
@@ -205,7 +235,9 @@ export const useOrgsStore = create<OrgsState>()(
             ...state.followedByUser,
             [userId]: {
               ...(state.followedByUser[userId] ?? {}),
-              ...Object.fromEntries(newlyFollowed.map((org) => [org.id, { ...org, viewerIsFollowing: true }])),
+              ...Object.fromEntries(
+                newlyFollowed.map((org) => [org.id, { ...org, viewerIsFollowing: true }]),
+              ),
             },
           },
         }))
@@ -222,7 +254,9 @@ export const useOrgsStore = create<OrgsState>()(
         const needsEnrichment = organizations.filter((org) => org.followerCount == null)
         if (needsEnrichment.length === 0) return
 
-        const settled = await Promise.allSettled(needsEnrichment.map((org) => getOrgDetails(token, org.login)))
+        const settled = await Promise.allSettled(
+          needsEnrichment.map((org) => getOrgDetails(token, org.login)),
+        )
 
         set((state) => {
           let results = state.results
@@ -263,6 +297,8 @@ export function useFollowedOrgs(userId: string | null): Organization[] {
   // Select the stable nested object first — deriving a new array from it on
   // every call (e.g. inline Object.values in the selector) trips React's
   // useSyncExternalStore infinite-loop guard since the snapshot is never equal.
-  const followedMap = useOrgsStore((state) => (userId ? (state.followedByUser[userId] ?? EMPTY_FOLLOWED) : EMPTY_FOLLOWED))
+  const followedMap = useOrgsStore((state) =>
+    userId ? (state.followedByUser[userId] ?? EMPTY_FOLLOWED) : EMPTY_FOLLOWED,
+  )
   return useMemo(() => Object.values(followedMap), [followedMap])
 }

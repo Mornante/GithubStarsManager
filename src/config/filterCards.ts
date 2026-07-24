@@ -2,7 +2,13 @@ import type { ComponentType } from 'react'
 import type { FilterState } from '../types/filters'
 import { REVIEW_TAG_LISTS } from './reviewTags'
 import { DEPLOY_TAG } from './deployTag'
-import { OcticonCheck, OcticonEye, OcticonRocket, OcticonStar, OcticonTag } from '../components/icons/Octicons'
+import {
+  OcticonCheck,
+  OcticonEye,
+  OcticonRocket,
+  OcticonStar,
+  OcticonTag,
+} from '../components/icons/Octicons'
 
 export interface FilterCardDef {
   key: string

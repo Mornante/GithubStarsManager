@@ -7,7 +7,14 @@ describe('migrateGsmState', () => {
     const legacy = {
       version: 1,
       reviewTags: { r1: 'REVIEW_REQUIRED' },
-      deployments: { r2: { environment: 'production', deployedRef: 'v1.0.0', deployedRefType: 'release', deployedAt: '2024-01-01T00:00:00Z' } },
+      deployments: {
+        r2: {
+          environment: 'production',
+          deployedRef: 'v1.0.0',
+          deployedRefType: 'release',
+          deployedAt: '2024-01-01T00:00:00Z',
+        },
+      },
       notes: { r1: { content: 'hello', updatedAt: '2024-02-02T00:00:00Z' } },
     }
 
@@ -17,7 +24,14 @@ describe('migrateGsmState', () => {
     expect(result.state.schemaVersion).toBe(CURRENT_SCHEMA_VERSION)
     expect(result.state.repos).toEqual({
       r1: { reviewTag: 'REVIEW_REQUIRED', note: { content: 'hello', updatedAt: '2024-02-02T00:00:00Z' } },
-      r2: { deployment: { environment: 'production', deployedRef: 'v1.0.0', deployedRefType: 'release', deployedAt: '2024-01-01T00:00:00Z' } },
+      r2: {
+        deployment: {
+          environment: 'production',
+          deployedRef: 'v1.0.0',
+          deployedRefType: 'release',
+          deployedAt: '2024-01-01T00:00:00Z',
+        },
+      },
     })
   })
 

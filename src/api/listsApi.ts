@@ -29,7 +29,11 @@ export async function fetchViewerLists(token: string): Promise<StarList[]> {
 
 // updateUserListsForItem replaces the repo's entire list membership in one call,
 // so callers must pass the complete desired set of list IDs.
-export async function updateRepoListMembership(token: string, repoId: string, listIds: string[]): Promise<void> {
+export async function updateRepoListMembership(
+  token: string,
+  repoId: string,
+  listIds: string[],
+): Promise<void> {
   await githubGraphql(token, UPDATE_USER_LISTS_FOR_ITEM_MUTATION, { itemId: repoId, listIds })
 }
 
@@ -51,5 +55,11 @@ export async function createList(
     isPrivate,
   })
   const list = data.createUserList.list
-  return { id: list.id, name: list.name, description: list.description, isPrivate: list.isPrivate, repoIds: [] }
+  return {
+    id: list.id,
+    name: list.name,
+    description: list.description,
+    isPrivate: list.isPrivate,
+    repoIds: [],
+  }
 }

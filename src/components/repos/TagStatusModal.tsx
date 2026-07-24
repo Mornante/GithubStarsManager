@@ -72,7 +72,9 @@ export default function TagStatusModal({ repo, onClose }: { repo: Repo; onClose:
                 >
                   <Icon className="w-5 h-5" />
                 </span>
-                <span className={`text-xs ${isActive ? 'font-semibold' : 'font-medium'}`}>{def.shortLabel}</span>
+                <span className={`text-xs ${isActive ? 'font-semibold' : 'font-medium'}`}>
+                  {def.shortLabel}
+                </span>
               </button>
             )
           })}
@@ -80,8 +82,8 @@ export default function TagStatusModal({ repo, onClose }: { repo: Repo; onClose:
       </div>
 
       <p className="text-xs text-fg-muted mt-6">
-        Click the current stage again to remove the tag entirely. Switching stages removes the old tag and applies
-        the new one. Saved to your GSM:STATE gist.
+        Click the current stage again to remove the tag entirely. Switching stages removes the old tag and
+        applies the new one. Saved to your GSM:STATE gist.
       </p>
     </Modal>
   )

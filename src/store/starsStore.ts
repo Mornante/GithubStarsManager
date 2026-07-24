@@ -65,15 +65,28 @@ export const useStarsStore = create<StarsState>()(
         const repos = reposResult.status === 'fulfilled' ? reposResult.value : before.repos
         const lists = listsResult.status === 'fulfilled' ? listsResult.value : before.lists
 
-        const failure = reposResult.status === 'rejected' ? reposResult.reason : listsResult.status === 'rejected' ? listsResult.reason : null
+        const failure =
+          reposResult.status === 'rejected'
+            ? reposResult.reason
+            : listsResult.status === 'rejected'
+              ? listsResult.reason
+              : null
 
         set((state) => ({
           dataByUser: {
             ...state.dataByUser,
-            [userId]: { repos: withListMembership(repos, lists), lists, lastSyncedAt: new Date().toISOString() },
+            [userId]: {
+              repos: withListMembership(repos, lists),
+              lists,
+              lastSyncedAt: new Date().toISOString(),
+            },
           },
           status: failure ? 'error' : 'idle',
-          error: failure ? (failure instanceof Error ? failure.message : 'Failed to refresh from GitHub') : null,
+          error: failure
+            ? failure instanceof Error
+              ? failure.message
+              : 'Failed to refresh from GitHub'
+            : null,
         }))
       },
 
@@ -134,7 +147,9 @@ export const useStarsStore = create<StarsState>()(
           const newList = await createListApi(token, name, description)
           set((state) => {
             const before = state.dataByUser[userId] ?? emptyUserData
-            return { dataByUser: { ...state.dataByUser, [userId]: { ...before, lists: [...before.lists, newList] } } }
+            return {
+              dataByUser: { ...state.dataByUser, [userId]: { ...before, lists: [...before.lists, newList] } },
+            }
           })
         } catch (err) {
           set({ error: err instanceof Error ? err.message : `Failed to create list "${name}"` })
@@ -148,7 +163,9 @@ export const useStarsStore = create<StarsState>()(
           set((state) => {
             const current = state.dataByUser[userId] ?? emptyUserData
             if (current.repos.some((r) => r.id === repo.id)) return {}
-            return { dataByUser: { ...state.dataByUser, [userId]: { ...current, repos: [repo, ...current.repos] } } }
+            return {
+              dataByUser: { ...state.dataByUser, [userId]: { ...current, repos: [repo, ...current.repos] } },
+            }
           })
           toast(`Starred ${owner}/${name}`)
         } catch (err) {
@@ -175,7 +192,6 @@ export const useStarsStore = create<StarsState>()(
           }))
         }
       },
-
     }),
     { name: 'gh-stars-data' },
   ),

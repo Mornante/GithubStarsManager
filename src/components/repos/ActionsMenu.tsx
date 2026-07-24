@@ -1,4 +1,11 @@
-import { OcticonCheck, OcticonChevronUpDown, OcticonNote, OcticonRocket, OcticonStar, OcticonTag } from '../icons/Octicons'
+import {
+  OcticonCheck,
+  OcticonChevronUpDown,
+  OcticonNote,
+  OcticonRocket,
+  OcticonStar,
+  OcticonTag,
+} from '../icons/Octicons'
 import DropdownMenu, { type DropdownMenuItem } from '../shared/DropdownMenu'
 
 export default function ActionsMenu({
@@ -24,7 +31,13 @@ export default function ActionsMenu({
 
   const items: DropdownMenuItem[] = [
     isStarred
-      ? { key: 'unstar', label: 'Un-star', icon: OcticonStar, iconClassName: 'text-fg-muted', onClick: onUnstar }
+      ? {
+          key: 'unstar',
+          label: 'Un-star',
+          icon: OcticonStar,
+          iconClassName: 'text-fg-muted',
+          onClick: onUnstar,
+        }
       : {
           key: 'star',
           label: starring ? 'Starring…' : 'Star',

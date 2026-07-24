@@ -39,9 +39,9 @@ export default function ReviewWorkflowExplainer() {
     <section>
       <h2 className="text-lg font-semibold mb-1">How I review stars</h2>
       <p className="text-sm text-fg-muted mb-6">
-        Every repo moves through this pipeline — the review stage and deployment status are stored as JSON in a
-        private <span className="font-mono text-xs">GSM:STATE</span> gist on your GitHub account, separate from
-        your real star lists, which stay free for genuine topic-based collections.
+        Every repo moves through this pipeline — the review stage and deployment status are stored as JSON in
+        a private <span className="font-mono text-xs">GSM:STATE</span> gist on your GitHub account, separate
+        from your real star lists, which stay free for genuine topic-based collections.
       </p>
 
       <div className="relative">

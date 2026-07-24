@@ -8,7 +8,10 @@ import { useEffect, useState } from 'react'
 // `deps` intentionally isn't `fetcher` itself: callers typically pass a fresh
 // closure every render, so the effect re-runs based on the caller-supplied
 // dependency list instead (same trade-off the original hand-rolled effects made).
-export function useAsync<T>(fetcher: (() => Promise<T>) | null, deps: unknown[]): { data: T | null; loading: boolean } {
+export function useAsync<T>(
+  fetcher: (() => Promise<T>) | null,
+  deps: unknown[],
+): { data: T | null; loading: boolean } {
   const [data, setData] = useState<T | null>(null)
   const [loading, setLoading] = useState(fetcher !== null)
 

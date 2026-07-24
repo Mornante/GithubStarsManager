@@ -78,7 +78,11 @@ export default function IssuesPage() {
           {status === 'loadingMore' ? (
             <Loader label="Loading more…" size="sm" />
           ) : hasMore ? (
-            <button type="button" onClick={loadMore} className="text-fg-muted hover:text-fg-default underline">
+            <button
+              type="button"
+              onClick={loadMore}
+              className="text-fg-muted hover:text-fg-default underline"
+            >
               Load more
             </button>
           ) : (

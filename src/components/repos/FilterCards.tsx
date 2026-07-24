@@ -30,7 +30,9 @@ export default function FilterCards({
             aria-label={`${card.label}: ${count} repos`}
             className="flex items-center gap-2 rounded-md border border-border-default bg-canvas-subtle px-2.5 py-1.5 text-left hover:border-accent-fg"
           >
-            <span className={`w-6 h-6 rounded-full flex items-center justify-center text-white shrink-0 ${card.colorClass}`}>
+            <span
+              className={`w-6 h-6 rounded-full flex items-center justify-center text-white shrink-0 ${card.colorClass}`}
+            >
               <card.icon className="w-3.5 h-3.5" />
             </span>
             <span>

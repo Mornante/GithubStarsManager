@@ -1,7 +1,11 @@
 import type { FilterControlProps } from '../../../types/filters'
 import { OcticonChevronDown } from '../../icons/Octicons'
 
-export default function SelectFilterControl({ value, options = [], onChange }: FilterControlProps<string | null>) {
+export default function SelectFilterControl({
+  value,
+  options = [],
+  onChange,
+}: FilterControlProps<string | null>) {
   return (
     <div className="relative w-36">
       <select

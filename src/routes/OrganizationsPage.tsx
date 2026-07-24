@@ -59,7 +59,9 @@ export default function OrganizationsPage() {
     <div className="space-y-8">
       <div>
         <h1 className="text-xl font-display font-semibold">Organizations</h1>
-        <p className="text-sm text-fg-muted">Browse public organizations and follow the ones worth tracking.</p>
+        <p className="text-sm text-fg-muted">
+          Browse public organizations and follow the ones worth tracking.
+        </p>
       </div>
 
       <div className="flex justify-center">
@@ -91,7 +93,9 @@ export default function OrganizationsPage() {
           {inputValue.trim() ? `Results for "${inputValue.trim()}"` : 'Popular organizations'}
         </h2>
         {!inputValue.trim() && (
-          <p className="text-sm text-fg-muted mb-3">Sorted by follower count. Search above to narrow this down.</p>
+          <p className="text-sm text-fg-muted mb-3">
+            Sorted by follower count. Search above to narrow this down.
+          </p>
         )}
 
         {status === 'error' && <p className="text-sm text-danger-fg">{error}</p>}
@@ -114,7 +118,11 @@ export default function OrganizationsPage() {
             {status === 'loadingMore' ? (
               <Loader label="Loading more…" size="sm" />
             ) : hasMore ? (
-              <button type="button" onClick={loadMore} className="text-fg-muted hover:text-fg-default underline">
+              <button
+                type="button"
+                onClick={loadMore}
+                className="text-fg-muted hover:text-fg-default underline"
+              >
                 Load more
               </button>
             ) : (

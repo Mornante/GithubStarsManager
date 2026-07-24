@@ -34,7 +34,13 @@ export default function App() {
   return (
     <>
       <ErrorBoundary>
-        <Suspense fallback={<div className="p-6"><Loader label="Loading…" /></div>}>
+        <Suspense
+          fallback={
+            <div className="p-6">
+              <Loader label="Loading…" />
+            </div>
+          }
+        >
           <Routes>
             <Route path="/login" element={<LoginPage />} />
             <Route

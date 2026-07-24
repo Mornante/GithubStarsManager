@@ -59,7 +59,9 @@ const repoC = makeRepo({
 
 const repos = [repoA, repoB, repoC]
 
-const lists: StarList[] = [{ id: 'list1', name: 'Cool Stuff', description: null, isPrivate: false, repoIds: ['r2'] }]
+const lists: StarList[] = [
+  { id: 'list1', name: 'Cool Stuff', description: null, isPrivate: false, repoIds: ['r2'] },
+]
 
 function ctx(overrides: Partial<FilterPredicateCtx> = {}): FilterPredicateCtx {
   return { lists, reviewTags: {}, deployments: {}, ...overrides }
@@ -115,7 +117,16 @@ describe('filterRepos', () => {
   })
 
   it('filters deployed repos', () => {
-    const c = ctx({ deployments: { r2: { environment: 'production', deployedRef: 'v1', deployedRefType: 'release', deployedAt: '2024-01-01' } } })
+    const c = ctx({
+      deployments: {
+        r2: {
+          environment: 'production',
+          deployedRef: 'v1',
+          deployedRefType: 'release',
+          deployedAt: '2024-01-01',
+        },
+      },
+    })
     expect(filter({ deployed: 'yes' }, c)).toEqual(['r2'])
   })
 })

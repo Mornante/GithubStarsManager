@@ -1,4 +1,12 @@
-export default function TabButton({ label, active, onClick }: { label: string; active: boolean; onClick: () => void }) {
+export default function TabButton({
+  label,
+  active,
+  onClick,
+}: {
+  label: string
+  active: boolean
+  onClick: () => void
+}) {
   return (
     <button
       type="button"

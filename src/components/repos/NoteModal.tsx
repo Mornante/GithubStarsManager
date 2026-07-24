@@ -90,7 +90,9 @@ export default function NoteModal({ repo, onClose }: { repo: Repo; onClose: () =
               type="button"
               onClick={() => setTab('readme')}
               className={`px-3 py-1.5 text-sm font-medium rounded-t-md ${
-                tab === 'readme' ? 'bg-canvas-subtle border border-b-0 border-border-default' : 'text-fg-muted'
+                tab === 'readme'
+                  ? 'bg-canvas-subtle border border-b-0 border-border-default'
+                  : 'text-fg-muted'
               }`}
             >
               README

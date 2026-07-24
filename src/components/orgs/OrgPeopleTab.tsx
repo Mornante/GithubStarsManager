@@ -11,14 +11,17 @@ export default function OrgPeopleTab({ token, login }: { token: string; login: s
     error,
     hasMore,
     loadMore,
-  } = usePaginatedFetch<OrgMember>(async (cursor) => {
-    // REST pagination here is page-number based, not cursor based — the
-    // same "stringify the page number into the cursor slot" trick orgsApi.ts
-    // already uses for REST-backed org search.
-    const page = cursor ? Number(cursor) : 1
-    const result = await fetchOrgPublicMembers(token, login, page)
-    return { items: result.members, hasNextPage: result.hasMore, endCursor: String(page + 1) }
-  }, [token, login])
+  } = usePaginatedFetch<OrgMember>(
+    async (cursor) => {
+      // REST pagination here is page-number based, not cursor based — the
+      // same "stringify the page number into the cursor slot" trick orgsApi.ts
+      // already uses for REST-backed org search.
+      const page = cursor ? Number(cursor) : 1
+      const result = await fetchOrgPublicMembers(token, login, page)
+      return { items: result.members, hasNextPage: result.hasMore, endCursor: String(page + 1) }
+    },
+    [token, login],
+  )
 
   const sentinelRef = useInfiniteScrollSentinel(loadMore, hasMore)
 
@@ -35,7 +38,8 @@ export default function OrgPeopleTab({ token, login }: { token: string; login: s
   if (members.length === 0) {
     return (
       <p className="text-sm text-fg-muted py-8 text-center">
-        No public members found. Only members who've made their organization affiliation public are visible here.
+        No public members found. Only members who've made their organization affiliation public are visible
+        here.
       </p>
     )
   }
