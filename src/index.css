@@ -5,50 +5,50 @@
   color-scheme: light;
 
   --color-canvas: #ffffff;
-  --color-canvas-subtle: #f6f8fa;
+  --color-canvas-subtle: #f8fafc;
   --color-canvas-overlay: #ffffff;
-  --color-border-default: #d0d7de;
-  --color-border-muted: #d8dee4;
-  --color-fg-default: #1f2328;
-  --color-fg-muted: #656d76;
-  --color-fg-subtle: #6e7781;
-  --color-accent-fg: #0969da;
-  --color-accent-emphasis: #0969da;
-  --color-success-fg: #1a7f37;
-  --color-success-emphasis: #2da44e;
-  --color-attention-fg: #9a6700;
-  --color-attention-emphasis: #bf8700;
-  --color-done-fg: #8250df;
-  --color-done-emphasis: #8250df;
-  --color-danger-fg: #d1242f;
-  --color-danger-emphasis: #cf222e;
-  --color-grid-line: rgba(31, 35, 40, 0.06);
-  --color-grid-glow: rgba(9, 105, 218, 0.08);
+  --color-border-default: #e2e8f0;
+  --color-border-muted: #f1f5f9;
+  --color-fg-default: #0f172a;
+  --color-fg-muted: #64748b;
+  --color-fg-subtle: #94a3b8;
+  --color-accent-fg: #0284c7;
+  --color-accent-emphasis: #0284c7;
+  --color-success-fg: #047857;
+  --color-success-emphasis: #059669;
+  --color-attention-fg: #b45309;
+  --color-attention-emphasis: #d97706;
+  --color-done-fg: #7c3aed;
+  --color-done-emphasis: #7c3aed;
+  --color-danger-fg: #dc2626;
+  --color-danger-emphasis: #dc2626;
+  --color-grid-line: rgba(15, 23, 42, 0.06);
+  --color-grid-glow: rgba(2, 132, 199, 0.08);
 }
 
 :root.dark {
   color-scheme: dark;
 
-  --color-canvas: #0d1117;
-  --color-canvas-subtle: #161b22;
-  --color-canvas-overlay: #161b22;
-  --color-border-default: #30363d;
-  --color-border-muted: #21262d;
-  --color-fg-default: #e6edf3;
-  --color-fg-muted: #7d8590;
-  --color-fg-subtle: #6e7681;
-  --color-accent-fg: #2f81f7;
-  --color-accent-emphasis: #2f81f7;
-  --color-success-fg: #3fb950;
-  --color-success-emphasis: #238636;
-  --color-attention-fg: #d29922;
-  --color-attention-emphasis: #9e6a03;
-  --color-done-fg: #a371f7;
-  --color-done-emphasis: #8957e5;
-  --color-danger-fg: #f85149;
-  --color-danger-emphasis: #da3633;
-  --color-grid-line: rgba(230, 237, 243, 0.06);
-  --color-grid-glow: rgba(47, 129, 247, 0.12);
+  --color-canvas: #0f172a;
+  --color-canvas-subtle: #1e293b;
+  --color-canvas-overlay: #1e293b;
+  --color-border-default: rgba(255, 255, 255, 0.08);
+  --color-border-muted: rgba(255, 255, 255, 0.05);
+  --color-fg-default: #f8fafc;
+  --color-fg-muted: #94a3b8;
+  --color-fg-subtle: #64748b;
+  --color-accent-fg: #38bdf8;
+  --color-accent-emphasis: #0ea5e9;
+  --color-success-fg: #34d399;
+  --color-success-emphasis: #10b981;
+  --color-attention-fg: #fbbf24;
+  --color-attention-emphasis: #d97706;
+  --color-done-fg: #a78bfa;
+  --color-done-emphasis: #8b5cf6;
+  --color-danger-fg: #f87171;
+  --color-danger-emphasis: #dc2626;
+  --color-grid-line: rgba(248, 250, 252, 0.06);
+  --color-grid-glow: rgba(56, 189, 248, 0.12);
 }
 
 @theme inline {
@@ -71,7 +71,8 @@
   --color-danger-fg: var(--color-danger-fg);
   --color-danger-emphasis: var(--color-danger-emphasis);
 
-  --font-sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji";
+  --font-sans: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji";
+  --font-display: "Lexend", "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
   --font-mono: ui-monospace, "SFMono-Regular", "SF Mono", Consolas, "Liberation Mono", monospace;
 }
 

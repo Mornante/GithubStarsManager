@@ -59,7 +59,7 @@ export default function NoteModal({ repo, onClose }: { repo: Repo; onClose: () =
       <Modal
         onClose={onClose}
         labelledBy="note-modal-title"
-        className="w-full max-w-5xl h-[90vh] overflow-hidden rounded-md border border-border-default bg-canvas flex flex-col"
+        className="w-full max-w-5xl h-[90vh] overflow-hidden rounded-2xl border border-border-default bg-canvas shadow-xl flex flex-col"
       >
         <div className="flex items-center justify-between p-4 border-b border-border-default">
           <h3 id="note-modal-title" className="text-base font-semibold">
@@ -85,6 +85,17 @@ export default function NoteModal({ repo, onClose }: { repo: Repo; onClose: () =
         </div>
 
         <div className="flex gap-1 px-4 pt-3 border-b border-border-default">
+          {hasNote && (
+            <button
+              type="button"
+              onClick={() => setTab('readme')}
+              className={`px-3 py-1.5 text-sm font-medium rounded-t-md ${
+                tab === 'readme' ? 'bg-canvas-subtle border border-b-0 border-border-default' : 'text-fg-muted'
+              }`}
+            >
+              README
+            </button>
+          )}
           <button
             type="button"
             onClick={() => setTab('view')}
@@ -103,22 +114,20 @@ export default function NoteModal({ repo, onClose }: { repo: Repo; onClose: () =
           >
             Edit
           </button>
-          {hasNote && (
-            <button
-              type="button"
-              onClick={() => setTab('readme')}
-              className={`px-3 py-1.5 text-sm font-medium rounded-t-md ${
-                tab === 'readme' ? 'bg-canvas-subtle border border-b-0 border-border-default' : 'text-fg-muted'
-              }`}
-            >
-              README
-            </button>
-          )}
         </div>
 
         <div className="flex-1 overflow-y-auto p-4">
           {!gsm.gistId ? (
             <Loader label="Loading your GSM:STATE gist…" />
+          ) : tab === 'readme' ? (
+            account && (
+              <ReadmePreview
+                token={account.token}
+                fetchKey={repo.nameWithOwner}
+                fetcher={(t) => getReadme(t, repo.owner.login, repo.name)}
+                emptyMessage="No README found for this repository."
+              />
+            )
           ) : tab === 'view' ? (
             hasNote && record ? (
               <>
@@ -129,15 +138,6 @@ export default function NoteModal({ repo, onClose }: { repo: Repo; onClose: () =
               </>
             ) : (
               <p className="text-sm text-fg-muted">No note yet — switch to Edit to write one.</p>
-            )
-          ) : tab === 'readme' ? (
-            account && (
-              <ReadmePreview
-                token={account.token}
-                fetchKey={repo.nameWithOwner}
-                fetcher={(t) => getReadme(t, repo.owner.login, repo.name)}
-                emptyMessage="No README found for this repository."
-              />
             )
           ) : (
             <textarea

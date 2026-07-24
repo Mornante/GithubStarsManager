@@ -19,7 +19,7 @@ export default function NotesPage() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-xl font-semibold">Notes</h1>
+        <h1 className="text-xl font-display font-semibold">Notes</h1>
         <p className="text-sm text-fg-muted">Freeform markdown notes you've kept against starred repos.</p>
       </div>
 

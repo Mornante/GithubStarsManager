@@ -31,7 +31,7 @@ export default function TagStatusModal({ repo, onClose }: { repo: Repo; onClose:
     <Modal
       onClose={onClose}
       labelledBy="tag-status-modal-title"
-      className="w-full max-w-md rounded-md border border-border-default bg-canvas p-6"
+      className="w-full max-w-md rounded-2xl border border-border-default bg-canvas shadow-xl p-6"
     >
       <div className="flex items-center justify-between mb-6">
         <h3 id="tag-status-modal-title" className="text-base font-semibold">

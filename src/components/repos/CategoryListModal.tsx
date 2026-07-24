@@ -30,7 +30,7 @@ export default function CategoryListModal({
     <Modal
       onClose={onClose}
       labelledBy="category-list-modal-title"
-      className="w-full max-w-md rounded-md border border-border-default bg-canvas p-6"
+      className="w-full max-w-md rounded-2xl border border-border-default bg-canvas shadow-xl p-6"
     >
       <div className="flex items-center justify-between mb-4">
         <h3 id="category-list-modal-title" className="text-base font-semibold">

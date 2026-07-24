@@ -19,7 +19,7 @@ export default function DeploymentsPage() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-xl font-semibold">Deployments</h1>
+        <h1 className="text-xl font-display font-semibold">Deployments</h1>
         <p className="text-sm text-fg-muted">
           Track what's deployed where, and how far it's drifted from the latest release or commit.
         </p>

@@ -41,7 +41,7 @@ export default function DropdownMenu({
       {open && (
         <div
           role="menu"
-          className="absolute left-1/2 -translate-x-1/2 z-20 mt-1 w-56 rounded-md border border-border-default bg-canvas-overlay shadow-lg p-1"
+          className="absolute left-1/2 -translate-x-1/2 z-20 mt-1 w-56 rounded-xl border border-border-default bg-canvas-overlay shadow-lg p-1"
         >
           {items.map((item) => (
             <div key={item.key}>

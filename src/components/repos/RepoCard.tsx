@@ -42,7 +42,7 @@ function RepoCard({
   return (
     <button
       type="button"
-      className={`w-full text-left border border-border-default rounded-md bg-canvas-subtle hover:border-accent-fg transition-colors cursor-pointer ${
+      className={`w-full text-left border border-border-default rounded-xl bg-canvas-subtle hover:border-accent-fg transition-colors cursor-pointer ${
         view === 'grid' ? 'p-4 flex flex-col gap-2' : 'p-3 flex items-center gap-4'
       }`}
       onClick={onOpen}

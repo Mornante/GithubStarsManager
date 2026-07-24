@@ -4,7 +4,7 @@ import { OcticonLinkExternal, OcticonPeople, OcticonRepo, OcticonStar } from '..
 
 function OrgCard({ org, onOpen }: { org: Organization; onOpen: () => void }) {
   return (
-    <div className="border border-border-default rounded-md bg-canvas-subtle hover:border-accent-fg transition-colors flex flex-col gap-2 p-4">
+    <div className="border border-border-default rounded-xl bg-canvas-subtle hover:border-accent-fg transition-colors flex flex-col gap-2 p-4">
       <button type="button" onClick={onOpen} className="w-full text-left flex flex-col gap-2">
         <div className="flex items-center gap-2">
           <img src={org.avatarUrl} alt="" className="w-8 h-8 rounded-md shrink-0" />

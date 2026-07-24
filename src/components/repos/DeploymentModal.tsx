@@ -99,7 +99,7 @@ export default function DeploymentModal({ repo, onClose }: { repo: Repo; onClose
       <Modal
         onClose={onClose}
         labelledBy="deployment-modal-title"
-        className="w-full max-w-md rounded-md border border-border-default bg-canvas flex flex-col"
+        className="w-full max-w-md rounded-2xl border border-border-default bg-canvas shadow-xl flex flex-col"
       >
         <div className="flex items-center justify-between p-4 border-b border-border-default">
           <h3 id="deployment-modal-title" className="text-base font-semibold">

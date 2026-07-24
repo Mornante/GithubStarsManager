@@ -40,8 +40,8 @@ export default function LoginPage() {
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-canvas px-4">
-      <div className="w-full max-w-md border border-border-default rounded-md p-6 bg-canvas-subtle">
-        <h1 className="text-xl font-semibold mb-1">GitHub Stars Manager</h1>
+      <div className="w-full max-w-md border border-border-default rounded-2xl shadow-xl p-6 bg-canvas-subtle">
+        <h1 className="text-xl font-display font-semibold mb-1">GitHub Stars Manager</h1>
         <p className="text-fg-muted text-sm mb-6">
           Paste a GitHub personal access token to connect your starred repositories.
         </p>
@@ -68,7 +68,7 @@ export default function LoginPage() {
           <button
             type="submit"
             disabled={status === 'validating' || !token.trim()}
-            className="w-full rounded-md bg-success-emphasis text-white font-medium py-2 disabled:opacity-50"
+            className="w-full rounded-full bg-accent-emphasis text-white font-medium py-2 disabled:opacity-50"
           >
             {status === 'validating' ? 'Validating…' : 'Connect'}
           </button>

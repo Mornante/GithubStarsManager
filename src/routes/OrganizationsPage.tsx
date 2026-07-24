@@ -58,7 +58,7 @@ export default function OrganizationsPage() {
   return (
     <div className="space-y-8">
       <div>
-        <h1 className="text-xl font-semibold">Organizations</h1>
+        <h1 className="text-xl font-display font-semibold">Organizations</h1>
         <p className="text-sm text-fg-muted">Browse public organizations and follow the ones worth tracking.</p>
       </div>
 

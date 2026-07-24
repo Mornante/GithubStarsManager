@@ -37,7 +37,7 @@ export default function IssuesPage() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-xl font-semibold">Issues</h1>
+        <h1 className="text-xl font-display font-semibold">Issues</h1>
         <p className="text-sm text-fg-muted">
           Issues you're involved in — as author, assignee, or mentioned — across all of GitHub.
         </p>

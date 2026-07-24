@@ -73,7 +73,7 @@ export default function OrgDetailModal({
         <Modal
           onClose={onClose}
           labelledBy="org-detail-modal-title"
-          className="w-full max-w-4xl max-h-[85vh] overflow-hidden rounded-md border border-border-default bg-canvas flex flex-col"
+          className="w-full max-w-4xl max-h-[85vh] overflow-hidden rounded-2xl border border-border-default bg-canvas shadow-xl flex flex-col"
         >
           <div className="border-b border-border-default p-4 grid grid-cols-[1fr_auto_1fr] items-center gap-4">
             <div className="flex items-start gap-3 min-w-0">

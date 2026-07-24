@@ -8,7 +8,7 @@ function NoteCard({ repo, record, onOpen }: { repo: Repo; record: NoteRecord; on
   return (
     <button
       type="button"
-      className="w-full text-left border border-border-default rounded-md bg-canvas-subtle hover:border-accent-fg transition-colors cursor-pointer p-4 flex flex-col gap-2"
+      className="w-full text-left border border-border-default rounded-xl bg-canvas-subtle hover:border-accent-fg transition-colors cursor-pointer p-4 flex flex-col gap-2"
       onClick={onOpen}
     >
       <span className="font-mono text-sm font-medium truncate block">{repo.nameWithOwner}</span>

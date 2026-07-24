@@ -24,8 +24,8 @@ const NAV_ITEMS = [
 
 const navLinkClass = (collapsed: boolean) =>
   ({ isActive }: { isActive: boolean }) =>
-    `flex items-center gap-2 px-3 py-2 rounded-md text-sm font-medium ${collapsed ? 'justify-center' : ''} ${
-      isActive ? 'bg-canvas-subtle text-fg-default' : 'text-fg-muted hover:text-fg-default hover:bg-canvas-subtle'
+    `flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium ${collapsed ? 'justify-center' : ''} ${
+      isActive ? 'bg-accent-fg/10 text-accent-fg font-semibold' : 'text-fg-muted hover:text-fg-default hover:bg-canvas-subtle'
     }`
 
 export default function Sidebar() {

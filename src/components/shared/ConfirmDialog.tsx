@@ -18,7 +18,7 @@ export default function ConfirmDialog({
       onClose={onCancel}
       overlayZIndexClassName="z-[60]"
       labelledBy="confirm-dialog-title"
-      className="w-full max-w-sm rounded-md border border-border-default bg-canvas p-6"
+      className="w-full max-w-sm rounded-2xl border border-border-default bg-canvas shadow-xl p-6"
     >
       <h3 id="confirm-dialog-title" className="text-base font-semibold mb-2">
         {title}
