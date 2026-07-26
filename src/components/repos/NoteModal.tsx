@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react'
 import { useAuthStore } from '../../store/authStore'
 import { useGsmStateStore, useGsmUserState } from '../../store/gsmStateStore'
 import { getReadme } from '../../api/rest'
+import { useRecentItems } from '../../hooks/useRecentItems'
 import type { Repo } from '../../types/github'
 import MarkdownContent from '../shared/MarkdownContent'
 import ConfirmDialog from '../shared/ConfirmDialog'
@@ -29,6 +30,17 @@ export default function NoteModal({ repo, onClose }: { repo: Repo; onClose: () =
   useEffect(() => {
     if (tab === 'edit') textareaRef.current?.focus()
   }, [tab])
+
+  const { recordVisit } = useRecentItems()
+  useEffect(() => {
+    recordVisit({
+      id: `note:${repo.nameWithOwner.toLowerCase()}`,
+      type: 'note',
+      name: repo.nameWithOwner,
+      href: `/notes?repo=${encodeURIComponent(repo.nameWithOwner)}`,
+    })
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- record once per opened repo, not on every recordVisit identity change
+  }, [repo.nameWithOwner])
 
   function handleEditClick() {
     setDraft(record?.content ?? '')

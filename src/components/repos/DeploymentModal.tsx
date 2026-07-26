@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { useAuthStore } from '../../store/authStore'
 import { useGsmStateStore, useGsmUserState } from '../../store/gsmStateStore'
 import { useRepoDeploymentInfo } from '../../hooks/useRepoDeploymentInfo'
+import { useRecentItems } from '../../hooks/useRecentItems'
 import { computeDeploymentDrift } from '../../selectors/deploymentDrift'
 import type { DeploymentRecord } from '../../types/gsmState'
 import type { Repo } from '../../types/github'
@@ -29,6 +30,17 @@ export default function DeploymentModal({ repo, onClose }: { repo: Repo; onClose
   const [confirmingRemove, setConfirmingRemove] = useState(false)
 
   const { info, loading: loadingInfo } = useRepoDeploymentInfo(account?.token, repo.owner.login, repo.name)
+
+  const { recordVisit } = useRecentItems()
+  useEffect(() => {
+    recordVisit({
+      id: `deployment:${repo.nameWithOwner.toLowerCase()}`,
+      type: 'deployment',
+      name: repo.nameWithOwner,
+      href: `/deployments?repo=${encodeURIComponent(repo.nameWithOwner)}`,
+    })
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- record once per opened repo, not on every recordVisit identity change
+  }, [repo.nameWithOwner])
 
   useEffect(() => {
     // Only suggest a starting ref the first time info arrives for a repo that

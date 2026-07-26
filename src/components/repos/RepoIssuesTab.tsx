@@ -3,6 +3,7 @@ import { useAuthStore } from '../../store/authStore'
 import { issueHasChangedSinceView, useIssueViewsStore } from '../../store/issueViewsStore'
 import { usePaginatedFetch } from '../../hooks/usePaginatedFetch'
 import { useInfiniteScrollSentinel } from '../../hooks/useInfiniteScrollSentinel'
+import { useRecentItems } from '../../hooks/useRecentItems'
 import type { Issue } from '../../api/issuesApi'
 import IssueRow from '../issues/IssueRow'
 import Loader from '../shared/Loader'
@@ -19,6 +20,7 @@ export default function RepoIssuesTab({
   const account = useAuthStore((s) => s.currentAccount())
   const markViewed = useIssueViewsStore((s) => s.markViewed)
   const viewsByUser = useIssueViewsStore((s) => s.byUser)
+  const { recordVisit } = useRecentItems()
 
   const {
     items: issues,
@@ -62,7 +64,17 @@ export default function RepoIssuesTab({
                 ? issueHasChangedSinceView(viewsByUser, account.user.id, issue.id, issue.updatedAt)
                 : false
             }
-            onOpen={() => account && markViewed(account.user.id, issue.id, issue.updatedAt)}
+            onOpen={() => {
+              if (!account) return
+              markViewed(account.user.id, issue.id, issue.updatedAt)
+              recordVisit({
+                id: `issue:${issue.id}`,
+                type: 'issue',
+                name: `${issue.repoNameWithOwner}#${issue.number}`,
+                href: issue.url,
+                external: true,
+              })
+            }}
           />
         ))}
       </div>

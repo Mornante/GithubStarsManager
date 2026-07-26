@@ -3,8 +3,8 @@ import { persist } from 'zustand/middleware'
 import { findOrCreateGsmStateGist, writeGsmState } from '../api/gistApi'
 import { GithubApiError } from '../api/githubClient'
 import { useToastStore } from './toastStore'
-import { emptyGsmState } from '../types/gsmState'
-import type { GsmStateFile, ReviewStage, DeploymentRecord, RepoState } from '../types/gsmState'
+import { emptyGsmState, MAX_RECENT_ITEMS } from '../types/gsmState'
+import type { GsmStateFile, ReviewStage, DeploymentRecord, RepoState, RecentItem } from '../types/gsmState'
 
 interface UserGsmState {
   gistId: string | null
@@ -31,6 +31,8 @@ interface GsmStateStoreShape {
   clearDeployment: (userId: string, token: string, repo: RepoRef) => Promise<void>
   setNote: (userId: string, token: string, repo: RepoRef, content: string) => Promise<void>
   clearNote: (userId: string, token: string, repo: RepoRef) => Promise<void>
+  recordVisit: (userId: string, token: string, item: Omit<RecentItem, 'visitedAt'>) => Promise<void>
+  clearRecentItems: (userId: string, token: string) => Promise<void>
 }
 
 function toast(message: string) {
@@ -195,6 +197,47 @@ export const useGsmStateStore = create<GsmStateStoreShape>()(
           set((s) => ({
             byUser: { ...s.byUser, [userId]: before },
             error: err instanceof Error ? err.message : 'Failed to delete note from GSM:STATE gist',
+          }))
+        }
+      },
+
+      // Fires on effectively every navigation (opening a repo, an org, an
+      // issue…), so unlike the actions above this deliberately skips the
+      // toast and doesn't surface failures via `error` — a transient write
+      // failure here shouldn't pop the same "failed to sync" banner used for
+      // real data-loss risk (tags/notes/deployments). A silent rollback is
+      // enough; the next visit retries the write with fresh data.
+      recordVisit: async (userId, token, item) => {
+        const before = get().byUser[userId] ?? emptyUserGsm
+        if (!before.gistId) return
+        const visitedAt = new Date().toISOString()
+        const nextItems = [
+          { ...item, visitedAt },
+          ...before.state.recentItems.filter((i) => i.id !== item.id),
+        ].slice(0, MAX_RECENT_ITEMS)
+        const nextState: GsmStateFile = { ...before.state, recentItems: nextItems }
+
+        set((s) => ({ byUser: { ...s.byUser, [userId]: { ...before, state: nextState } } }))
+        try {
+          await writeGsmState(token, before.gistId, nextState)
+        } catch {
+          set((s) => ({ byUser: { ...s.byUser, [userId]: before } }))
+        }
+      },
+
+      clearRecentItems: async (userId, token) => {
+        const before = get().byUser[userId] ?? emptyUserGsm
+        if (!before.gistId || before.state.recentItems.length === 0) return
+        const nextState: GsmStateFile = { ...before.state, recentItems: [] }
+
+        set((s) => ({ byUser: { ...s.byUser, [userId]: { ...before, state: nextState } } }))
+        try {
+          await writeGsmState(token, before.gistId, nextState)
+          toast('Cleared recent activity')
+        } catch (err) {
+          set((s) => ({
+            byUser: { ...s.byUser, [userId]: before },
+            error: err instanceof Error ? err.message : 'Failed to clear recent activity in GSM:STATE gist',
           }))
         }
       },

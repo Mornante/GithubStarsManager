@@ -7,6 +7,9 @@ purpose, track what's deployed where, keep markdown notes, and discover trending
 [![CodeQL](https://github.com/Mornante/GithubStarsManager/actions/workflows/codeql.yml/badge.svg)](https://github.com/Mornante/GithubStarsManager/actions/workflows/codeql.yml)
 [![Secret scanning](https://github.com/Mornante/GithubStarsManager/actions/workflows/secret-scan.yml/badge.svg)](https://github.com/Mornante/GithubStarsManager/actions/workflows/secret-scan.yml)
 
+**[Try the live demo →](https://red-moss-07b3d1c03.7.azurestaticapps.net/)** — no install required, just paste a
+personal access token to connect your own starred repos.
+
 Runs entirely in the browser: you connect with a personal access token, and the app talks directly to
 `api.github.com`. There's no backend and no server-side storage — your token stays in your browser's local storage,
 and cross-device state (review stage tags, deployment records, notes) is stored as JSON in a private gist on your
