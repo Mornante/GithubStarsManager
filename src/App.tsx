@@ -16,6 +16,7 @@ const OrganizationsPage = lazy(() => import('./routes/OrganizationsPage'))
 const DeploymentsPage = lazy(() => import('./routes/DeploymentsPage'))
 const NotesPage = lazy(() => import('./routes/NotesPage'))
 const IssuesPage = lazy(() => import('./routes/IssuesPage'))
+const RecentItemsPage = lazy(() => import('./routes/RecentItemsPage'))
 
 function AuthGate({ children }: { children: React.ReactNode }) {
   const account = useAuthStore((s) => s.currentAccount())
@@ -96,6 +97,14 @@ export default function App() {
               element={
                 <AuthGate>
                   <IssuesPage />
+                </AuthGate>
+              }
+            />
+            <Route
+              path="/recent"
+              element={
+                <AuthGate>
+                  <RecentItemsPage />
                 </AuthGate>
               }
             />

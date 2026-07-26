@@ -3,6 +3,9 @@ import { useAuthStore } from '../store/authStore'
 import { useFollowedOrgs, useOrgsStore } from '../store/orgsStore'
 import { useStarredRepos } from '../hooks/useStarredRepos'
 import { useInfiniteScrollSentinel } from '../hooks/useInfiniteScrollSentinel'
+import { useOrgModal } from '../hooks/useOrgModal'
+import { useAsync } from '../hooks/useAsync'
+import { getOrgDetails } from '../api/orgsApi'
 import OrgCard from '../components/orgs/OrgCard'
 import OrgDetailModal from '../components/orgs/OrgDetailModal'
 import Loader from '../components/shared/Loader'
@@ -13,9 +16,9 @@ export default function OrganizationsPage() {
   const { repos, lists } = useStarredRepos()
   const followedOrgs = useFollowedOrgs(account?.user.id ?? null)
   const { query, results, status, error, hasMore, search, searchMore, enrichOrgProfiles } = useOrgsStore()
+  const { openOrgKey, openOrg, closeOrg } = useOrgModal()
 
   const [inputValue, setInputValue] = useState(query)
-  const [selectedOrgId, setSelectedOrgId] = useState<string | null>(null)
 
   useEffect(() => {
     if (!account) return
@@ -48,8 +51,21 @@ export default function OrganizationsPage() {
 
   // Re-derived from live store state each render, not a snapshot, so follow/unfollow
   // toggles inside the modal stay in sync without needing to close and reopen it.
-  const selectedOrg =
-    results.find((o) => o.id === selectedOrgId) ?? followedOrgs.find((o) => o.id === selectedOrgId) ?? null
+  const inMemoryOrg = openOrgKey
+    ? (results.find((o) => o.login.toLowerCase() === openOrgKey.toLowerCase()) ??
+      followedOrgs.find((o) => o.login.toLowerCase() === openOrgKey.toLowerCase()) ??
+      null)
+    : null
+
+  // Falls back to fetching by login when the org isn't already in memory —
+  // e.g. reopened via a deep link (recently-visited nav entry) after it's
+  // scrolled out of the search results, mirroring RepoDetailModal's fallback
+  // fetch for repos that aren't in the starred list.
+  const orgFetcher =
+    openOrgKey && !inMemoryOrg && account ? () => getOrgDetails(account.token, openOrgKey) : null
+  const { data: fetchedOrg } = useAsync(orgFetcher, [openOrgKey, inMemoryOrg, account])
+
+  const selectedOrg = inMemoryOrg ?? fetchedOrg ?? null
 
   // Followed orgs already have their own section above — don't show them again here.
   const followedIds = useMemo(() => new Set(followedOrgs.map((o) => o.id)), [followedOrgs])
@@ -82,7 +98,7 @@ export default function OrganizationsPage() {
           <h2 className="text-lg font-semibold mb-3">Following</h2>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
             {followedOrgs.map((org) => (
-              <OrgCard key={org.id} org={org} onOpen={() => setSelectedOrgId(org.id)} />
+              <OrgCard key={org.id} org={org} onOpen={() => openOrg(org.login)} />
             ))}
           </div>
         </section>
@@ -109,7 +125,7 @@ export default function OrganizationsPage() {
 
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
           {visibleResults.map((org) => (
-            <OrgCard key={org.id} org={org} onOpen={() => setSelectedOrgId(org.id)} />
+            <OrgCard key={org.id} org={org} onOpen={() => openOrg(org.login)} />
           ))}
         </div>
 
@@ -133,12 +149,7 @@ export default function OrganizationsPage() {
       </section>
 
       {selectedOrg && (
-        <OrgDetailModal
-          org={selectedOrg}
-          starredRepos={repos}
-          lists={lists}
-          onClose={() => setSelectedOrgId(null)}
-        />
+        <OrgDetailModal org={selectedOrg} starredRepos={repos} lists={lists} onClose={closeOrg} />
       )}
     </div>
   )

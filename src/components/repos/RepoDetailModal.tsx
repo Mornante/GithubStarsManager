@@ -1,8 +1,9 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import type { Repo, StarList } from '../../types/github'
 import { useAuthStore } from '../../store/authStore'
 import { useStarsStore } from '../../store/starsStore'
 import { useAsync } from '../../hooks/useAsync'
+import { useRecentItems } from '../../hooks/useRecentItems'
 import { getReadme, getRepoDetails } from '../../api/rest'
 import { OcticonFork, OcticonStar } from '../icons/Octicons'
 import ReadmePreview from './ReadmePreview'
@@ -51,6 +52,17 @@ export default function RepoDetailModal({
 
   const repo = storeRepo ?? fetchedRepo
   const isStarred = Boolean(storeRepo)
+
+  const { recordVisit } = useRecentItems()
+  useEffect(() => {
+    recordVisit({
+      id: `repo:${nameWithOwner.toLowerCase()}`,
+      type: 'repo',
+      name: nameWithOwner,
+      href: `/repos?repo=${encodeURIComponent(nameWithOwner)}`,
+    })
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- record once per opened repo, not on every recordVisit identity change
+  }, [nameWithOwner])
 
   async function handleStar() {
     if (!account) return

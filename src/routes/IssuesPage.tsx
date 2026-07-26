@@ -3,6 +3,7 @@ import { useAuthStore } from '../store/authStore'
 import { useIssuesStore } from '../store/issuesStore'
 import { issueHasChangedSinceView, useIssueViewsStore } from '../store/issueViewsStore'
 import { useInfiniteScrollSentinel } from '../hooks/useInfiniteScrollSentinel'
+import { useRecentItems } from '../hooks/useRecentItems'
 import IssueRow from '../components/issues/IssueRow'
 import Loader from '../components/shared/Loader'
 import { OcticonSearch } from '../components/icons/Octicons'
@@ -12,6 +13,7 @@ export default function IssuesPage() {
   const { results, status, error, hasMore, setQuery, search, searchMore } = useIssuesStore()
   const markViewed = useIssueViewsStore((s) => s.markViewed)
   const viewsByUser = useIssueViewsStore((s) => s.byUser)
+  const { recordVisit } = useRecentItems()
 
   const [inputValue, setInputValue] = useState('')
 
@@ -68,7 +70,16 @@ export default function IssuesPage() {
             key={issue.id}
             issue={issue}
             hasChanges={issueHasChangedSinceView(viewsByUser, account.user.id, issue.id, issue.updatedAt)}
-            onOpen={() => markViewed(account.user.id, issue.id, issue.updatedAt)}
+            onOpen={() => {
+              markViewed(account.user.id, issue.id, issue.updatedAt)
+              recordVisit({
+                id: `issue:${issue.id}`,
+                type: 'issue',
+                name: `${issue.repoNameWithOwner}#${issue.number}`,
+                href: issue.url,
+                external: true,
+              })
+            }}
           />
         ))}
       </div>

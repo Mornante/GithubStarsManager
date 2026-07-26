@@ -52,6 +52,19 @@ describe('migrateGsmState', () => {
     expect(result.state.meta.app).toBe('GitHub Stars Manager')
   })
 
+  it('backfills recentItems as an empty array for a gist written before that field existed', () => {
+    // A 1.0.0 gist predating recentItems has no such key at all — this is the
+    // purely-additive-field case, so no schemaVersion bump/migration step was
+    // needed; mergeWithDefaults alone must supply the empty default.
+    const result = migrateGsmState({
+      schemaVersion: CURRENT_SCHEMA_VERSION,
+      repos: { r1: { reviewTag: 'REVIEWED' } },
+    })
+
+    expect(result.migratedFrom).toBeNull()
+    expect(result.state.recentItems).toEqual([])
+  })
+
   it('passes through unchanged when the gist is at a version this build has no migration path from', () => {
     const fromTheFuture = { schemaVersion: '9.9.9', repos: { r1: { reviewTag: 'REVIEWED' } } }
 

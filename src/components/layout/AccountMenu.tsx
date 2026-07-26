@@ -1,13 +1,22 @@
 import { useAuthStore } from '../../store/authStore'
+import { useGsmUserState } from '../../store/gsmStateStore'
 import { useTheme } from '../../hooks/useTheme'
 import { useDismissableOpen } from '../../hooks/useDismissableOpen'
-import { OcticonChevronUpDown, OcticonMoon, OcticonSignOut, OcticonSun } from '../icons/Octicons'
+import {
+  OcticonChevronUpDown,
+  OcticonMoon,
+  OcticonNote,
+  OcticonSignOut,
+  OcticonStar,
+  OcticonSun,
+} from '../icons/Octicons'
 
 export default function AccountMenu({ collapsed = false }: { collapsed?: boolean }) {
   const { open, setOpen, ref } = useDismissableOpen<HTMLDivElement>()
   const account = useAuthStore((s) => s.currentAccount())
   const logout = useAuthStore((s) => s.logout)
   const { theme, toggleTheme } = useTheme()
+  const { gistId } = useGsmUserState(account?.user.id ?? null)
 
   if (!account) return null
 
@@ -41,6 +50,30 @@ export default function AccountMenu({ collapsed = false }: { collapsed?: boolean
             {theme === 'dark' ? <OcticonSun /> : <OcticonMoon />}
             Switch to {theme === 'dark' ? 'light' : 'dark'} theme
           </button>
+
+          <a
+            href="https://github.com/Mornante/GithubStarsManager"
+            target="_blank"
+            rel="noreferrer"
+            role="menuitem"
+            className="w-full flex items-center gap-2 px-2 py-1.5 text-sm rounded hover:bg-canvas-subtle"
+          >
+            <OcticonStar className="text-attention-fg" />
+            Star on GitHub
+          </a>
+
+          {gistId && (
+            <a
+              href={`https://gist.github.com/${gistId}`}
+              target="_blank"
+              rel="noreferrer"
+              role="menuitem"
+              className="w-full flex items-center gap-2 px-2 py-1.5 text-sm rounded hover:bg-canvas-subtle"
+            >
+              <OcticonNote />
+              View your Gist
+            </a>
+          )}
 
           <div className="border-t border-border-default" />
 

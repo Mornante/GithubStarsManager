@@ -40,6 +40,25 @@ const REPO_URL = 'https://github.com/Mornante/GithubStarsManager'
 // object (star, list, follow). New custom-data features should add fields to
 // RepoState (if per-repo) or here at the top level (if global) rather than
 // inventing another storage mechanism.
+export type RecentItemType = 'repo' | 'org' | 'deployment' | 'note' | 'issue'
+
+// One "recently visited" entry, tracked as a cross-device MRU list. `id` is
+// the dedup/reorder key (`${type}:${lowercased-key}`) — revisiting the same
+// item updates its visitedAt and moves it to the front instead of creating a
+// duplicate row. `external` marks hrefs that must open in a new tab (e.g. an
+// issue's GitHub URL) rather than an in-app route.
+export interface RecentItem {
+  id: string
+  type: RecentItemType
+  name: string
+  href: string
+  external?: boolean
+  visitedAt: string
+}
+
+export const MAX_RECENT_ITEMS = 100
+export const RECENT_ITEMS_NAV_LIMIT = 6
+
 export interface GsmStateFile {
   $schema: string
   kind: 'GSM:STATE'
@@ -51,6 +70,7 @@ export interface GsmStateFile {
     updatedAt: string
   }
   repos: Record<string, RepoState>
+  recentItems: RecentItem[]
 }
 
 export function emptyGsmState(): GsmStateFile {
@@ -66,5 +86,6 @@ export function emptyGsmState(): GsmStateFile {
       updatedAt: new Date().toISOString(),
     },
     repos: {},
+    recentItems: [],
   }
 }

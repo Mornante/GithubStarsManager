@@ -3,6 +3,7 @@ import type { Organization, Repo, StarList } from '../../types/github'
 import { useAuthStore } from '../../store/authStore'
 import { useOrgsStore } from '../../store/orgsStore'
 import { getOrgProfileReadme } from '../../api/rest'
+import { useRecentItems } from '../../hooks/useRecentItems'
 import { OcticonLinkExternal, OcticonPeople, OcticonRepo, OcticonStar } from '../icons/Octicons'
 import ReadmePreview from '../repos/ReadmePreview'
 import RepoDetailModal from '../repos/RepoDetailModal'
@@ -38,6 +39,17 @@ export default function OrgDetailModal({
     if (account) void syncFollowStatus(account.user.id, account.token, org)
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [account, org.login])
+
+  const { recordVisit } = useRecentItems()
+  useEffect(() => {
+    recordVisit({
+      id: `org:${org.login.toLowerCase()}`,
+      type: 'org',
+      name: org.login,
+      href: `/organizations?org=${encodeURIComponent(org.login)}`,
+    })
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- record once per opened org, not on every recordVisit identity change
+  }, [org.login])
 
   async function handleFollow() {
     if (!account) return

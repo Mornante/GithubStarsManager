@@ -11,6 +11,7 @@ import {
   OcticonSearch,
 } from '../icons/Octicons'
 import AccountMenu from './AccountMenu'
+import RecentItemsSection from './RecentItemsSection'
 
 const NAV_ITEMS = [
   { to: '/', end: true, label: 'Home', icon: OcticonHome },
@@ -65,6 +66,8 @@ export default function Sidebar() {
         ))}
       </nav>
 
+      <RecentItemsSection collapsed={collapsed} />
+
       <div className="p-2 border-t border-border-default space-y-1">
         <button
           type="button"
@@ -77,6 +80,7 @@ export default function Sidebar() {
           <OcticonChevronDown className={collapsed ? '-rotate-90' : 'rotate-90'} />
           {!collapsed && 'Collapse'}
         </button>
+
         <AccountMenu collapsed={collapsed} />
       </div>
     </aside>

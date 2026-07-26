@@ -24,7 +24,8 @@ vi.mock('../api/gistApi', () => ({ findOrCreateGsmStateGist: vi.fn(), writeGsmSt
 import { findOrCreateGsmStateGist, writeGsmState } from '../api/gistApi'
 import { GithubApiError } from '../api/githubClient'
 import { useGsmStateStore } from './gsmStateStore'
-import { emptyGsmState } from '../types/gsmState'
+import { emptyGsmState, MAX_RECENT_ITEMS } from '../types/gsmState'
+import type { RecentItem } from '../types/gsmState'
 
 const USER_ID = 'u1'
 const TOKEN = 'token'
@@ -135,6 +136,145 @@ describe('setDeployment', () => {
       nameWithOwner: 'octo/hello-world',
       deployment: record,
     })
+  })
+})
+
+describe('recordVisit', () => {
+  const ITEM: Omit<RecentItem, 'visitedAt'> = {
+    id: 'repo:octo/hello-world',
+    type: 'repo',
+    name: 'octo/hello-world',
+    href: '/repos?repo=octo%2Fhello-world',
+  }
+
+  it('optimistically records the visit, then persists it', async () => {
+    useGsmStateStore.setState({ byUser: { [USER_ID]: { gistId: 'g1', state: emptyGsmState() } } })
+    vi.mocked(writeGsmState).mockResolvedValue(undefined)
+
+    await useGsmStateStore.getState().recordVisit(USER_ID, TOKEN, ITEM)
+
+    const items = useGsmStateStore.getState().byUser[USER_ID].state.recentItems
+    expect(items).toHaveLength(1)
+    expect(items[0]).toMatchObject(ITEM)
+    expect(writeGsmState).toHaveBeenCalledWith(
+      TOKEN,
+      'g1',
+      expect.objectContaining({ recentItems: [expect.objectContaining(ITEM)] }),
+    )
+  })
+
+  it('moves a revisited item to the front and updates its visitedAt instead of duplicating', async () => {
+    const before = {
+      gistId: 'g1',
+      state: {
+        ...emptyGsmState(),
+        recentItems: [
+          { ...ITEM, visitedAt: '2024-01-01T00:00:00Z' },
+          {
+            id: 'org:vercel',
+            type: 'org' as const,
+            name: 'vercel',
+            href: '/organizations?org=vercel',
+            visitedAt: '2024-01-02T00:00:00Z',
+          },
+        ],
+      },
+    }
+    useGsmStateStore.setState({ byUser: { [USER_ID]: before } })
+    vi.mocked(writeGsmState).mockResolvedValue(undefined)
+
+    await useGsmStateStore.getState().recordVisit(USER_ID, TOKEN, ITEM)
+
+    const items = useGsmStateStore.getState().byUser[USER_ID].state.recentItems
+    expect(items).toHaveLength(2)
+    expect(items[0]).toMatchObject(ITEM)
+    expect(items[0].visitedAt).not.toBe('2024-01-01T00:00:00Z')
+    expect(items[1].id).toBe('org:vercel')
+  })
+
+  it(`caps the list at ${MAX_RECENT_ITEMS} items`, async () => {
+    const recentItems: RecentItem[] = Array.from({ length: MAX_RECENT_ITEMS }, (_, i) => ({
+      id: `repo:owner/repo-${i}`,
+      type: 'repo',
+      name: `owner/repo-${i}`,
+      href: `/repos?repo=owner%2Frepo-${i}`,
+      visitedAt: '2024-01-01T00:00:00Z',
+    }))
+    useGsmStateStore.setState({
+      byUser: { [USER_ID]: { gistId: 'g1', state: { ...emptyGsmState(), recentItems } } },
+    })
+    vi.mocked(writeGsmState).mockResolvedValue(undefined)
+
+    await useGsmStateStore.getState().recordVisit(USER_ID, TOKEN, ITEM)
+
+    const items = useGsmStateStore.getState().byUser[USER_ID].state.recentItems
+    expect(items).toHaveLength(MAX_RECENT_ITEMS)
+    expect(items[0]).toMatchObject(ITEM)
+    expect(items.some((i) => i.id === 'repo:owner/repo-99')).toBe(false)
+  })
+
+  it('rolls back silently on write failure, without setting a global error', async () => {
+    const before = { gistId: 'g1', state: emptyGsmState() }
+    useGsmStateStore.setState({ byUser: { [USER_ID]: before } })
+    vi.mocked(writeGsmState).mockRejectedValue(new Error('gist write failed'))
+
+    await useGsmStateStore.getState().recordVisit(USER_ID, TOKEN, ITEM)
+
+    expect(useGsmStateStore.getState().byUser[USER_ID]).toEqual(before)
+    expect(useGsmStateStore.getState().error).toBeNull()
+  })
+
+  it('does nothing when the gist has not loaded yet', async () => {
+    await useGsmStateStore.getState().recordVisit(USER_ID, TOKEN, ITEM)
+    expect(writeGsmState).not.toHaveBeenCalled()
+  })
+})
+
+describe('clearRecentItems', () => {
+  const EXISTING: RecentItem[] = [
+    {
+      id: 'repo:octo/hello-world',
+      type: 'repo',
+      name: 'octo/hello-world',
+      href: '/repos?repo=octo%2Fhello-world',
+      visitedAt: '2024-01-01T00:00:00Z',
+    },
+  ]
+
+  it('optimistically empties the list, persists it, and toasts', async () => {
+    useGsmStateStore.setState({
+      byUser: { [USER_ID]: { gistId: 'g1', state: { ...emptyGsmState(), recentItems: EXISTING } } },
+    })
+    vi.mocked(writeGsmState).mockResolvedValue(undefined)
+
+    await useGsmStateStore.getState().clearRecentItems(USER_ID, TOKEN)
+
+    expect(useGsmStateStore.getState().byUser[USER_ID].state.recentItems).toEqual([])
+    expect(writeGsmState).toHaveBeenCalledWith(TOKEN, 'g1', expect.objectContaining({ recentItems: [] }))
+  })
+
+  it('rolls back and sets an error when the write fails', async () => {
+    const before = { gistId: 'g1', state: { ...emptyGsmState(), recentItems: EXISTING } }
+    useGsmStateStore.setState({ byUser: { [USER_ID]: before } })
+    vi.mocked(writeGsmState).mockRejectedValue(new Error('gist write failed'))
+
+    await useGsmStateStore.getState().clearRecentItems(USER_ID, TOKEN)
+
+    expect(useGsmStateStore.getState().byUser[USER_ID]).toEqual(before)
+    expect(useGsmStateStore.getState().error).toBe('gist write failed')
+  })
+
+  it('does nothing when there are no recent items', async () => {
+    useGsmStateStore.setState({ byUser: { [USER_ID]: { gistId: 'g1', state: emptyGsmState() } } })
+
+    await useGsmStateStore.getState().clearRecentItems(USER_ID, TOKEN)
+
+    expect(writeGsmState).not.toHaveBeenCalled()
+  })
+
+  it('does nothing when the gist has not loaded yet', async () => {
+    await useGsmStateStore.getState().clearRecentItems(USER_ID, TOKEN)
+    expect(writeGsmState).not.toHaveBeenCalled()
   })
 })
 
